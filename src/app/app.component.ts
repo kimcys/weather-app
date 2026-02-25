@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { WeatherMapGoogleComponent } from './components/weather-map-google/weather-map-google.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [WeatherMapGoogleComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

@@ -1,0 +1,142 @@
+<div class="h-screen flex flex-col">
+    <div class="bg-linear-to-r from-blue-600 to-blue-700 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <span class="text-3xl">🌤️</span>
+                    Ramalan Cuaca Malaysia
+                </h1>
+                <p class="text-sm text-blue-100">Kemaskini cuaca terkini di seluruh Malaysia</p>
+            </div>
+            <div class="text-sm bg-blue-800 px-3 py-1 rounded-full">
+                {{ todayLabel }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <!-- Sidebar -->
+        <div class="lg:w-96 bg-white shadow-xl overflow-y-auto">
+            <!-- Filter Section -->
+            <div class="p-4 border-b">
+                <h3 class="text-lg font-semibold mb-3 text-gray-800">📅 Tapis Mengikut Tarikh</h3>
+                <div class="flex gap-2">
+                    <select [(ngModel)]="filteredDate" (change)="filterByDate(filteredDate)"
+                        class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Semua Tarikh</option>
+                        <option *ngFor="let date of uniqueDates" [value]="date">
+                            {{ date | date:'dd/MM/yyyy' }}
+                        </option>
+                    </select>
+                    <button *ngIf="filteredDate" (click)="resetFilter()"
+                        class="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- Selected Location Details -->
+            <div *ngIf="selectedForecast" class="p-4 bg-blue-50 border-b">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="text-lg font-semibold text-blue-800">
+                        {{ selectedForecast.location.location_name }}
+                    </h3>
+                    <span class="text-3xl">{{ getWeatherEmoji(selectedForecast.summary_forecast) }}</span>
+                </div>
+
+                <p class="text-sm text-gray-600 mb-3">
+                    {{ selectedForecast.date | date:'EEEE, dd MMMM yyyy' }}
+                </p>
+
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div class="bg-white p-2 rounded-lg text-center">
+                        <div class="text-sm text-gray-500">Min</div>
+                        <div class="text-xl font-bold text-blue-600">{{ selectedForecast.min_temp }}°C</div>
+                    </div>
+                    <div class="bg-white p-2 rounded-lg text-center">
+                        <div class="text-sm text-gray-500">Max</div>
+                        <div class="text-xl font-bold text-red-500">{{ selectedForecast.max_temp }}°C</div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-3">
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                            <div class="text-sm font-medium text-gray-700">Pagi</div>
+                            <div class="text-2xl">{{ getWeatherEmoji(selectedForecast.morning_forecast) }}</div>
+                            <div class="text-xs text-gray-500">{{ selectedForecast.morning_forecast }}</div>
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-700">Petang</div>
+                            <div class="text-2xl">{{ getWeatherEmoji(selectedForecast.afternoon_forecast) }}</div>
+                            <div class="text-xs text-gray-500">{{ selectedForecast.afternoon_forecast }}</div>
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-700">Malam</div>
+                            <div class="text-2xl">{{ getWeatherEmoji(selectedForecast.night_forecast) }}</div>
+                            <div class="text-xs text-gray-500">{{ selectedForecast.night_forecast }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location List -->
+            <div class="p-4">
+                <h3 class="text-lg font-semibold mb-3 text-gray-800">📍 Lokasi</h3>
+                <div class="space-y-2">
+                    <div *ngFor="let location of getLocationsWithForecast()"
+                        (click)="selectedForecast = getForecastForLocation(location)[0]"
+                        class="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition"
+                        [class.border-blue-500]="selectedForecast?.location?.location_name === location">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">{{ location }}</span>
+                            <span class="text-xl">{{
+                                getWeatherEmoji(getForecastForLocation(location)[0].summary_forecast) }}</span>
+                        </div>
+                        <div class="text-sm text-gray-500 mt-1">
+                            {{ getForecastForLocation(location)[0].summary_forecast }}
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1">
+                            🌡️ {{ getForecastForLocation(location)[0].min_temp }}° - {{
+                            getForecastForLocation(location)[0].max_temp }}°
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="flex-1 relative">
+            <div id="map" class="w-full h-full"></div>
+
+            <!-- Map Legend -->
+            <div class="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg z-10">
+                <h4 class="font-semibold text-sm mb-2 text-gray-700">Petunjuk Cuaca</h4>
+                <div class="space-y-1 text-sm">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded-full bg-green-500"></div>
+                        <span>Cerah / Tiada Hujan</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded-full bg-blue-500"></div>
+                        <span>Hujan</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded-full bg-red-500"></div>
+                        <span>Ribut Petir</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div *ngIf="!forecasts.length"
+                class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20">
+                <div class="text-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p class="mt-4 text-gray-600">Memuatkan data cuaca...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
