@@ -29,11 +29,22 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   uniqueDates: string[] = [];
   todayLabel = '';
   mapError = false;
+  
+  // Enhanced loading states
+  isLoading = true;
+  isWeatherLoading = false; // New flag for weather data loading
+  locationsLoaded = false;
+  weatherLoaded = false;
+  mapLoaded = false;
+  locationsCount = 0;
+  loadingMessage = 'Memulakan...';
+  
   locationsLoading = false;
   locationsError: string | null = null;
 
-  selectedLocationType: string = 'St';
+  selectedLocationType: string = 'all';
   locationTypes = [
+    { value: 'all', label: 'Semua' },
     { value: 'St', label: 'Negeri' },
     { value: 'Rc', label: 'Pusat Rekreasi' },
     { value: 'Ds', label: 'Daerah' },
@@ -46,7 +57,6 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     private locationService: LocationService,
     private locationMatcher: LocationMatcherService,
     private mapService: MapService
-
   ) { }
 
   ngOnInit(): void {
@@ -73,12 +83,16 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   private async loadLocations(): Promise<void> {
     this.locationsLoading = true;
     this.locationsError = null;
+    this.loadingMessage = 'Memuatkan lokasi...';
 
     try {
       const response = await firstValueFrom(this.locationService.getLocations());
       if (response?.items && Array.isArray(response.items)) {
         this.locationMatcher.setLocations(response.items);
+        this.locationsCount = response.items.length;
+        this.locationsLoaded = true;
         console.log(`Successfully loaded ${response.items.length} locations`);
+        this.loadingMessage = 'Lokasi dijumpai, memuatkan data cuaca...';
       } else {
         this.locationsError = 'Invalid response format from server';
       }
@@ -92,19 +106,35 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private loadWeatherData(): void {
+    this.isWeatherLoading = true; // Set weather loading flag
+    this.loadingMessage = 'Memproses ramalan cuaca...';
+    
     this.weatherService.getForecast()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
           this.forecasts = data;
+          this.weatherLoaded = true;
+          this.isWeatherLoading = false; // Clear weather loading flag
           this.uniqueDates = [...new Set(data.map(f => f.date))].sort();
+          
+          if (this.forecasts.length > 0) {
+            this.loadingMessage = 'Menjana peta interaktif...';
+          } else {
+            // If no data received but API call succeeded
+            this.loadingMessage = 'Tiada data cuaca ditemui';
+          }
+          
           if (this.mapService.getMap()) {
             this.updateMarkers();
           }
+          this.finalizeLoadingIfReady();
         },
         error: (error) => {
           console.error('Error loading weather data:', error);
           this.locationsError = 'Error loading weather data';
+          this.isWeatherLoading = false; // Clear weather loading flag on error
+          this.isLoading = false; // Also clear main loading flag
         }
       });
   }
@@ -123,18 +153,47 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private finalizeLoadingIfReady(): void {
+    if (this.mapLoaded && this.weatherLoaded) {
+      setTimeout(() => (this.isLoading = false), 300);
+    }
+  }
+
   private async initMap(): Promise<void> {
     const mapElement = document.getElementById('map');
     if (!mapElement) {
       this.mapError = true;
+      this.isLoading = false;
       return;
     }
 
     const success = await this.mapService.initializeMap(mapElement);
     this.mapError = !success;
-
-    if (success && this.forecasts.length > 0) {
-      this.updateMarkers();
+    
+    if (success) {
+      this.mapLoaded = true;
+      this.loadingMessage = 'Sedia!';
+      
+      if (this.forecasts.length > 0) {
+        this.updateMarkers();
+      }
+      
+      // All data is loaded, hide loading screen
+      // But only if weather data is also loaded
+      if (success) {
+        this.mapLoaded = true;
+        this.loadingMessage = 'Sedia!';
+        if (this.forecasts.length > 0) this.updateMarkers();
+      
+        this.finalizeLoadingIfReady();
+      }
+      if (this.weatherLoaded) {
+        setTimeout(() => {
+          this.isLoading = false;
+        }, 500); // Small delay for smooth transition
+      }
+    } else {
+      this.isLoading = false;
     }
   }
 
@@ -223,6 +282,25 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   retryLoadMap(): void {
     this.mapError = false;
     this.checkGoogleMapsLoaded();
+  }
+
+  retryLoadLocations(): void {
+    this.locationsError = null;
+    this.isLoading = true;
+    this.isWeatherLoading = true;
+    this.locationsLoaded = false;
+    this.weatherLoaded = false;
+    this.mapLoaded = false;
+    this.forecasts = [];
+    this.loadLocations();
+  }
+
+  refreshWeatherData(): void {
+    this.forecasts = [];
+    this.isLoading = true;
+    this.isWeatherLoading = true;
+    this.weatherLoaded = false;
+    this.loadWeatherData();
   }
 
   getLocationStats() {

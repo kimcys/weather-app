@@ -119,10 +119,9 @@ export class MapService {
         this.ngZone.run(() => {
           if (this.map) {
             this.map.panTo(coords);
-            const currentZoom = this.map.getZoom() || 6;
-            if (currentZoom < 8) {
-              this.map.setZoom(10);
-            }
+            const currentZoom = this.map.getZoom() ?? 6;
+            const targetZoom = currentZoom < 10 ? 10 : currentZoom;
+            this.smoothZoom(this.map, targetZoom, 70);
           }
 
           onMarkerClick(latestForecast, forecasts);
@@ -145,7 +144,7 @@ export class MapService {
             markers: advancedMarkers,
             onClusterClick: (_event, cluster, map) => {
               const bounds = new google.maps.LatLngBounds();
-
+            
               cluster.markers.forEach((m: any) => {
                 // Classic Marker
                 if (m instanceof google.maps.Marker) {
@@ -153,23 +152,30 @@ export class MapService {
                   if (p) bounds.extend(p);
                   return;
                 }
+            
                 const p = m?.position;
                 if (!p) return;
-
+            
                 if (p instanceof google.maps.LatLng) {
                   bounds.extend(p);
                 } else if (typeof p.lat === 'number' && typeof p.lng === 'number') {
                   bounds.extend(p);
                 }
               });
-
-              if (!bounds.isEmpty()) {
-                map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
-                google.maps.event.addListenerOnce(map, 'idle', () => {
-                  const z = map.getZoom() ?? 0;
-                  if (z > 14) map.setZoom(14);
-                });
-              }
+            
+              if (bounds.isEmpty()) return;
+            
+              map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+              google.maps.event.addListenerOnce(map, 'idle', () => {
+                const z = map.getZoom() ?? 0;
+                const maxAllowed = 14;
+                const center = bounds.getCenter();
+                map.panTo(center);
+            
+                if (z > maxAllowed) {
+                  this.smoothZoom(map, maxAllowed, 60);
+                }
+              });
             }
           });
           console.log('Marker cluster created with zoom on click');
@@ -276,6 +282,26 @@ export class MapService {
       anchor: marker,
       shouldFocus: false
     });
+  }
+
+  private smoothZoom(map: google.maps.Map, targetZoom: number, stepDelay = 80): void {
+    const startZoom = map.getZoom() ?? 6;
+  
+    if (startZoom === targetZoom) return;
+  
+    const direction = targetZoom > startZoom ? 1 : -1;
+    let current = startZoom;
+  
+    const tick = () => {
+      current += direction;
+      map.setZoom(current);
+  
+      if (current !== targetZoom) {
+        window.setTimeout(tick, stepDelay);
+      }
+    };
+  
+    window.setTimeout(tick, stepDelay);
   }
 
   private createPopupContent(latest: WeatherForecast, allForecasts: WeatherForecast[]): string {

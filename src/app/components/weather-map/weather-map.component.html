@@ -15,7 +15,9 @@
     </div>
 
     <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <!-- Sidebar - Only shown when data is fully loaded -->
         <app-map-sidebar
+            *ngIf="!isLoading && !mapError && forecasts.length > 0 && !isWeatherLoading"
             [selectedForecast]="selectedForecast"
             [uniqueDates]="uniqueDates"
             [locations]="getLocationsWithForecast()"
@@ -29,8 +31,10 @@
             (onLocationSelect)="onLocationSelect($event)">
         </app-map-sidebar>
 
-        <div class="flex-1 relative">
+        <div class="flex-1 relative" [class.lg:w-full]="isLoading || mapError || forecasts.length === 0 || isWeatherLoading">
             <div id="map" class="w-full h-full"></div>
+            
+            <!-- Location button - always visible -->
             <button (click)="centerOnUserLocation()"
                 class="absolute bottom-4 left-4 bg-white p-2 rounded-full shadow-lg z-10 hover:bg-gray-100 transition"
                 title="Pusatkan lokasi saya">
@@ -42,23 +46,119 @@
                 </svg>
             </button>
 
-            <app-map-legend></app-map-legend>
+            <app-map-legend *ngIf="!isLoading && !isWeatherLoading && forecasts.length > 0"></app-map-legend>
 
+            <!-- Error overlay -->
             <div *ngIf="mapError" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20">
-                <div class="text-center p-6 bg-white rounded-lg shadow-xl">
-                    <p class="text-red-600 mb-4">Ralat memuatkan peta</p>
+                <div class="text-center p-8 bg-white rounded-2xl shadow-2xl max-w-md mx-4">
+                    <div class="text-6xl mb-4">⚠️</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Ralat Memuatkan Peta</h3>
+                    <p class="text-gray-600 mb-6">Maaf, peta tidak dapat dimuatkan. Sila cuba sebentar lagi.</p>
                     <button (click)="retryLoadMap()"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        class="px-6 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg hover:shadow-xl font-medium">
                         Cuba Semula
                     </button>
                 </div>
             </div>
 
-            <div *ngIf="!forecasts.length && !mapError"
-                class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-20">
-                <div class="text-center">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p class="mt-4 text-gray-600">Memuatkan data cuaca...</p>
+            <!-- Initial Loading - No sidebar, fullscreen loading -->
+            <div *ngIf="isLoading || isWeatherLoading" 
+                class="absolute inset-0 bg-linear-to-br from-blue-50 to-white flex items-center justify-center z-20">
+                <div class="text-center max-w-md mx-auto px-6">
+                    <!-- Animated weather icon -->
+                    <div class="relative mb-8">
+                        <div class="text-8xl animate-bounce">🌤️</div>
+                        <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-blue-200 rounded-full animate-pulse"></div>
+                    </div>
+                    
+                    <!-- Main loading message -->
+                    <h2 class="text-3xl font-bold text-gray-800 mb-3">Memuatkan Data Cuaca</h2>
+                    <p class="text-gray-600 mb-8">Sila tunggu sebentar sementara kami mengumpulkan ramalan cuaca terkini untuk seluruh Malaysia.</p>
+                    
+                    <!-- Progress steps -->
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <span class="text-gray-700">Menyambung ke pelayan</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
+                                (locationsLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
+                                <div *ngIf="locationsLoaded" class="text-white">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <div *ngIf="!locationsLoaded" class="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                            <span class="text-gray-700">Memuatkan lokasi ({{ locationsCount || 0 }} ditemui)</span>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
+                                (weatherLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
+                                <div *ngIf="weatherLoaded" class="text-white">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <div *ngIf="!weatherLoaded" class="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                            <span class="text-gray-700">Memproses ramalan cuaca <span *ngIf="forecasts.length > 0">({{ forecasts.length }} direkod)</span></span>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
+                                (mapLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
+                                <div *ngIf="mapLoaded" class="text-white">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <div *ngIf="!mapLoaded" class="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                            <span class="text-gray-700">Menjana peta interaktif</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Loading spinner and message -->
+                    <div class="flex items-center justify-center gap-3 text-blue-600">
+                        <div class="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
+                        <span class="font-medium">{{ loadingMessage }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Error State -->
+            <div *ngIf="locationsError && !mapError && !isWeatherLoading" 
+                class="absolute inset-0 bg-white bg-opacity-95 flex items-center justify-center z-20">
+                <div class="text-center p-8 bg-white rounded-2xl shadow-2xl max-w-md mx-4">
+                    <div class="text-6xl mb-4">📍</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Ralat Memuatkan Lokasi</h3>
+                    <p class="text-gray-600 mb-6">{{ locationsError }}</p>
+                    <button (click)="retryLoadLocations()"
+                        class="px-6 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg hover:shadow-xl font-medium">
+                        Cuba Semula
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State - No weather data (only shown when NOT loading) -->
+            <div *ngIf="!isLoading && !isWeatherLoading && !locationsError && !mapError && forecasts.length === 0" 
+                class="absolute inset-0 bg-white bg-opacity-95 flex items-center justify-center z-20">
+                <div class="text-center p-8 bg-white rounded-2xl shadow-2xl max-w-md mx-4">
+                    <div class="text-6xl mb-4">🌧️</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Tiada Data Cuaca</h3>
+                    <p class="text-gray-600 mb-6">Maaf, tiada data ramalan cuaca tersedia buat masa ini. Sila cuba sebentar lagi.</p>
+                    <button (click)="refreshWeatherData()"
+                        class="px-6 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg hover:shadow-xl font-medium">
+                        Muat Semula
+                    </button>
                 </div>
             </div>
         </div>
