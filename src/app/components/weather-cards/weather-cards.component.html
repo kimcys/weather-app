@@ -1,17 +1,14 @@
 <div class="bg-white border-b border-gray-200 shadow-sm py-4 px-4">
     <div class="container mx-auto">
         <!-- Filter Bar -->
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <!-- <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div class="flex items-center gap-3">
-                <!-- Location Type Filter -->
                 <select [ngModel]="selectedLocationType" (ngModelChange)="onLocationTypeFilter.emit($event)"
                     class="text-sm p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
                     <option *ngFor="let type of locationTypes" [value]="type.value">
                         {{ type.label }}
                     </option>
                 </select>
-
-                <!-- Date Filter -->
                 <div class="flex items-center gap-2">
                     <select [ngModel]="filteredDate" (ngModelChange)="onDateFilter.emit($event)"
                         class="text-sm p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
@@ -26,19 +23,17 @@
                     </button>
                 </div>
             </div>
-
-            <!-- Location Count -->
             <div class="flex items-center gap-2">
                 <span class="text-sm text-gray-500">
                     {{ locations.length }} lokasi
                 </span>
             </div>
-        </div>
+        </div> -->
 
         <!-- Main Row: Selected Card + Scrollable Cards -->
         <div class="relative flex flex-row gap-4 min-h-36">
             <!-- Selected Card Section (Static on Left) -->
-            <div class="flex-none w-72">
+            <div class="flex-none w-80">
                 <!-- Selected Card -->
                 <div *ngIf="selectedForecast" 
                     class="relative bg-linear-to-br from-blue-50 to-white rounded-xl border-2 border-blue-400 shadow-lg p-4 h-full flex flex-col">

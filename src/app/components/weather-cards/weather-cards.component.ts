@@ -42,10 +42,15 @@ export class WeatherCardsComponent implements AfterViewInit, OnDestroy, OnInit {
 
   canScrollLeft = false;
   canScrollRight = true;
+  otherLocations: string[] = [];
+
   private scrollInterval: any;
-  private readonly SCROLL_SPEED = 0.8; // pixels per frame
-  private readonly AUTO_SCROLL_DELAY = 3000; // 3 seconds
-  private otherLocations: string[] = [];
+  private readonly SCROLL_SPEED = 2.0;
+  private isAutoScrolling = true;
+  private userInteracted = false;
+  private interactionTimeout: any;
+  private readonly INTERACTION_TIMEOUT = 1000;
+
 
   constructor(private ngZone: NgZone) {}
 
@@ -56,10 +61,35 @@ export class WeatherCardsComponent implements AfterViewInit, OnDestroy, OnInit {
   ngAfterViewInit() {
     this.startAutoScroll();
     this.checkScrollButtons();
+    
+    // Add event listeners for user interaction
+    const container = this.scrollContainer.nativeElement;
+    container.addEventListener('wheel', () => this.handleUserInteraction());
+    container.addEventListener('touchstart', () => this.handleUserInteraction());
+    container.addEventListener('mousedown', () => this.handleUserInteraction());
   }
 
   ngOnDestroy() {
     this.stopAutoScroll();
+    if (this.interactionTimeout) {
+      clearTimeout(this.interactionTimeout);
+    }
+  }
+
+  private handleUserInteraction() {
+    this.userInteracted = true;
+    this.isAutoScrolling = false;
+    
+    // Clear any existing timeout
+    if (this.interactionTimeout) {
+      clearTimeout(this.interactionTimeout);
+    }
+    
+    // Set timeout to resume auto-scroll after user stops interacting
+    this.interactionTimeout = setTimeout(() => {
+      this.userInteracted = false;
+      this.isAutoScrolling = true;
+    }, this.INTERACTION_TIMEOUT);
   }
 
   private updateOtherLocations() {
@@ -118,18 +148,33 @@ export class WeatherCardsComponent implements AfterViewInit, OnDestroy, OnInit {
     return location;
   }
 
-  // Scroll methods
   scrollLeft() {
+    this.handleUserInteraction(); // Pause auto-scroll
+    
     const container = this.scrollContainer.nativeElement;
-    const cardWidth = 240; // 224px width + 16px gap
-    container.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+    const cardWidth = 240; 
+    
+    // Use scrollBy with smooth behavior
+    container.scrollBy({
+      left: -cardWidth,
+      behavior: 'smooth'
+    });
+    
+    // Update button states after animation
     setTimeout(() => this.checkScrollButtons(), 300);
   }
 
   scrollRight() {
+    this.handleUserInteraction(); // Pause auto-scroll
+    
     const container = this.scrollContainer.nativeElement;
     const cardWidth = 240; // 224px width + 16px gap
-    container.scrollBy({ left: cardWidth, behavior: 'smooth' });
+    
+    container.scrollBy({
+      left: cardWidth,
+      behavior: 'smooth'
+    });
+    
     setTimeout(() => this.checkScrollButtons(), 300);
   }
 
@@ -141,8 +186,10 @@ export class WeatherCardsComponent implements AfterViewInit, OnDestroy, OnInit {
   private checkScrollButtons() {
     if (this.scrollContainer) {
       const container = this.scrollContainer.nativeElement;
-      this.canScrollLeft = container.scrollLeft > 10;
-      this.canScrollRight = container.scrollLeft < container.scrollWidth - container.clientWidth - 10;
+      const tolerance = 5; // Small tolerance for rounding errors
+      
+      this.canScrollLeft = container.scrollLeft > tolerance;
+      this.canScrollRight = container.scrollLeft < container.scrollWidth - container.clientWidth - tolerance;
     }
   }
 
@@ -165,20 +212,24 @@ export class WeatherCardsComponent implements AfterViewInit, OnDestroy, OnInit {
     this.ngZone.runOutsideAngular(() => {
       this.scrollInterval = setInterval(() => {
         this.ngZone.run(() => {
-          if (this.scrollContainer && this.canScrollRight) {
+          // Only auto-scroll if user hasn't interacted recently
+          if (this.scrollContainer && !this.userInteracted && this.isAutoScrolling && this.canScrollRight) {
             const container = this.scrollContainer.nativeElement;
             const maxScroll = container.scrollWidth - container.clientWidth;
             
             if (container.scrollLeft >= maxScroll - 10) {
-              // Jump to start for infinite effect
+              // Instantly jump to start for infinite effect (no smooth)
               container.scrollLeft = 0;
             } else {
-              container.scrollLeft += this.SCROLL_SPEED;
+              // Use requestAnimationFrame for smoother animation
+              requestAnimationFrame(() => {
+                container.scrollLeft += this.SCROLL_SPEED;
+              });
             }
             this.checkScrollButtons();
           }
         });
-      }, 30); // ~30fps
+      }, 16); // ~60fps (16ms per frame)
     });
   }
 
@@ -188,12 +239,14 @@ export class WeatherCardsComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-  // Pause auto-scroll on hover
+  // Public method to manually pause auto-scroll (can be called from template)
   pauseAutoScroll() {
-    this.stopAutoScroll();
+    this.userInteracted = true;
+    this.isAutoScrolling = false;
   }
 
   resumeAutoScroll() {
-    this.startAutoScroll();
+    this.userInteracted = false;
+    this.isAutoScrolling = true;
   }
 }

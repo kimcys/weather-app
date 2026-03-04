@@ -40,7 +40,7 @@
   transition: border-color 0.2s ease;
 }
 
-/* Duplicate cards semi-transparent for visual distinction (optional) */
+/* Duplicate cards semi-transparent for visual distinction */
 .duplicate-card {
   opacity: 0.7;
 }
@@ -51,7 +51,7 @@
 
 /* Ensure all cards have same height in the row */
 .flex-row > .flex-none {
-  min-height: 200px;
+  min-height: 140px; /* matches min-h-36 */
 }
 
 /* Placeholder animation */
@@ -81,4 +81,29 @@
 
 .mt-auto {
   margin-top: auto;
+}
+
+/* Smooth scrolling for the container */
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Better touch scrolling on iOS */
+}
+
+/* Optional: Add a subtle transition for the scroll container */
+.overflow-x-auto {
+  transition: scroll-behavior 0.3s ease;
+}
+
+/* Button hover effect */
+button:not(:disabled):hover {
+  transform: scale(1.05);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Card click animation */
+.cursor-pointer:active {
+  transform: scale(0.98);
 }
