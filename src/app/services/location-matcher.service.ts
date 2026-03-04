@@ -12,41 +12,42 @@ export class LocationMatcherService {
   constructor() { }
 
   setLocations(locations: Location[]): void {
-    this.locations = locations;
+    this.locations = [];
     this.locationsMap.clear();
 
-    locations.forEach(location => {
-      if (location?.name && !this.locationsMap.has(location.name)) {
-        this.locationsMap.set(location.name, location);
-      }
-    });
+    const seen = new Set<string>();
+
+    for (const loc of locations) {
+      if (!loc?.name) continue;
+
+      const key = loc.name.toLowerCase().trim().replace(/\s+/g, ' ');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      this.locations.push(loc);
+      this.locationsMap.set(key, loc);
+    }
   }
 
   findCoordinates(locationName: string): { lat: number; lng: number } | null {
-    const exactMatch = this.locationsMap.get(locationName);
-    if (exactMatch) {
-      return { lat: exactMatch.lat, lng: exactMatch.lng };
-    }
+    const key = locationName.toLowerCase().trim().replace(/\s+/g, ' ');
+
+    const exactMatch = this.locationsMap.get(key);
+    if (exactMatch) return { lat: exactMatch.lat, lng: exactMatch.lng };
+
     const fuzzyMatch = this.fuzzyMatch(locationName);
-    if (fuzzyMatch) {
-      return { lat: fuzzyMatch.lat, lng: fuzzyMatch.lng };
-    }
+    if (fuzzyMatch) return { lat: fuzzyMatch.lat, lng: fuzzyMatch.lng };
+
     return null;
   }
 
   private fuzzyMatch(locationName: string): Location | null {
-    const searchName = locationName.toLowerCase().trim();
+    const searchName = locationName.toLowerCase().trim().replace(/\s+/g, ' ');
 
     for (const location of this.locations) {
-      const locName = location.name.toLowerCase().trim();
+      const locName = location.name.toLowerCase().trim().replace(/\s+/g, ' ');
 
-      if (locName.includes(searchName) || searchName.includes(locName)) {
-        return location;
-      }
-
-      if (this.calculateSimilarity(locName, searchName) > 0.8) {
-        return location;
-      }
+      if (locName.includes(searchName) || searchName.includes(locName)) return location;
+      if (this.calculateSimilarity(locName, searchName) > 0.8) return location;
     }
     return null;
   }

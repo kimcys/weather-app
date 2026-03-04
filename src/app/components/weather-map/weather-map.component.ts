@@ -29,7 +29,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   uniqueDates: string[] = [];
   todayLabel = '';
   mapError = false;
-  
+
   // Enhanced loading states
   isLoading = true;
   isWeatherLoading = false;
@@ -38,7 +38,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   mapLoaded = false;
   locationsCount = 0;
   loadingMessage = 'Memulakan...';
-  
+
   locationsLoading = false;
   locationsError: string | null = null;
 
@@ -103,7 +103,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadWeatherData(): void {
     this.isWeatherLoading = true; // Set weather loading flag
     this.loadingMessage = 'Memproses ramalan cuaca...';
-    
+
     this.weatherService.getForecast()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -112,14 +112,14 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
           this.weatherLoaded = true;
           this.isWeatherLoading = false;
           this.uniqueDates = [...new Set(data.map(f => f.date))].sort();
-          
+
           if (this.forecasts.length > 0) {
             this.loadingMessage = 'Menjana peta interaktif...';
           } else {
             // If no data received but API call succeeded
             this.loadingMessage = 'Tiada data cuaca ditemui';
           }
-          
+
           if (this.mapService.getMap()) {
             this.updateMarkers();
           }
@@ -164,22 +164,22 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const success = await this.mapService.initializeMap(mapElement);
     this.mapError = !success;
-    
+
     if (success) {
       this.mapLoaded = true;
       this.loadingMessage = 'Sedia!';
-      
+
       if (this.forecasts.length > 0) {
         this.updateMarkers();
       }
-      
+
       // All data is loaded, hide loading screen
       // But only if weather data is also loaded
       if (success) {
         this.mapLoaded = true;
         this.loadingMessage = 'Sedia!';
         if (this.forecasts.length > 0) this.updateMarkers();
-      
+
         this.finalizeLoadingIfReady();
       }
       if (this.weatherLoaded) {
@@ -206,15 +206,31 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     coords: { lat: number; lng: number };
     forecasts: WeatherForecast[];
   }> {
-    const result = [];
-
+    const result: Array<{ name: string; coords: { lat: number; lng: number }; forecasts: WeatherForecast[] }> = [];
+  
+    const seenNames = new Set<string>();
+    const seenCoords = new Set<string>();
+  
+    const coordKey = (c: { lat: number; lng: number }) =>
+      `${c.lat.toFixed(6)},${c.lng.toFixed(6)}`; // rounding avoids tiny float diffs
+  
     for (const [name, forecasts] of groups.entries()) {
+      const nameKey = name.toLowerCase().trim().replace(/\s+/g, ' ');
+      if (seenNames.has(nameKey)) continue;
+  
       const coords = this.locationMatcher.findCoordinates(name);
-
-      if (coords) {
-        result.push({ name, coords, forecasts });
+      if (!coords) continue;
+  
+      const cKey = coordKey(coords);
+      if (seenCoords.has(cKey)) {
+        continue;
       }
+  
+      seenNames.add(nameKey);
+      seenCoords.add(cKey);
+      result.push({ name, coords, forecasts });
     }
+  
     return result;
   }
 

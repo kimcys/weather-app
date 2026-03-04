@@ -2,30 +2,42 @@ import { WeatherForecast } from "../model/forecast.model";
 
 export class WeatherUtils {
 
-    static getWeatherEmoji(forecast?: string): string {
-        const text = (forecast ?? '').trim().toLowerCase();
-        if (text.includes('ribut') || text.includes('petir')) return '⛈️';
-        if (text.includes('hujan')) {
-            if (text.includes('lebat')) return '🌧️💧';
-            if (text.includes('renek') || text.includes('renyai')) return '🌦️';
-            return '🌧️';
-        }
-        if (text.includes('mendung') || text.includes('berawan')) return '☁️';
-        if (text.includes('cerah') || text.includes('panas')) return '☀️';
-        if (text.includes('kabut') || text.includes('kabus')) return '🌫️';
-        if (text.includes('tiada hujan') || text.includes('tanpa hujan')) return '☀️';
-        return '☀️';
+    static getWeatherEmoji(summary?: string | null): string {
+        const s = (summary ?? '')
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, ' ');
+
+        if (!s) return '❓';
+
+        if (s.includes('tiada hujan')) return '☀️';
+        if (s.includes('ribut') || s.includes('petir')) return '⛈️';
+        if (s.includes('renyai')) return '🌦️';
+        if (s.includes('hujan')) return '🌧️';
+        if (s.includes('berawan')) return '⛅️';
+        if (s.includes('mendung') || s.includes('awan')) return '☁️';
+        if (s.includes('jerebu') || s.includes('berjerebu')) return '🌫️';
+
+        return '❓';
     }
 
     static getWeatherColor(forecast?: string): string {
-        const text = (forecast ?? '').trim().toLowerCase();
-        if (text.includes('ribut') || text.includes('petir')) return '#ef4444';
-        if (text.includes('hujan')) {
-            if (text.includes('lebat')) return '#1e40af';
+        const s = (forecast ?? '')
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, ' ');
+
+        if (s.includes('tiada hujan') || s.includes('cerah')) return '#f97316';
+        if (s.includes('ribut') || s.includes('petir')) return '#0b1f4d';
+        if (s.includes('renyai')) return '#93c5fd';
+        if (s.includes('hujan')) {
+            if (s.includes('lebat')) return '#1e3a8a';
             return '#3b82f6';
         }
-        if (text.includes('mendung') || text.includes('berawan')) return '#6b7280';
-        if (text.includes('kabut') || text.includes('kabus')) return '#9ca3af';
+        if (s.includes('mendung') || s.includes('berawan')) return '#6b7280';
+        if (s.includes('kabut') || s.includes('kabus') || s.includes('jerebu')) return '#9ca3af';
         return '#10b981';
     }
 

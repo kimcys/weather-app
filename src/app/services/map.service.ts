@@ -144,7 +144,7 @@ export class MapService {
             markers: advancedMarkers,
             onClusterClick: (_event, cluster, map) => {
               const bounds = new google.maps.LatLngBounds();
-            
+
               cluster.markers.forEach((m: any) => {
                 // Classic Marker
                 if (m instanceof google.maps.Marker) {
@@ -152,26 +152,26 @@ export class MapService {
                   if (p) bounds.extend(p);
                   return;
                 }
-            
+
                 const p = m?.position;
                 if (!p) return;
-            
+
                 if (p instanceof google.maps.LatLng) {
                   bounds.extend(p);
                 } else if (typeof p.lat === 'number' && typeof p.lng === 'number') {
                   bounds.extend(p);
                 }
               });
-            
+
               if (bounds.isEmpty()) return;
-            
+
               map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
               google.maps.event.addListenerOnce(map, 'idle', () => {
                 const z = map.getZoom() ?? 0;
                 const maxAllowed = 14;
                 const center = bounds.getCenter();
                 map.panTo(center);
-            
+
                 if (z > maxAllowed) {
                   this.smoothZoom(map, maxAllowed, 60);
                 }
@@ -235,36 +235,57 @@ export class MapService {
   }
 
   private createMarkerContent(forecast: WeatherForecast): HTMLElement {
-    const color = WeatherUtils.getWeatherColor(forecast.summary_forecast);
+    const bg = WeatherUtils.getWeatherColor(forecast.summary_forecast);
     const emoji = WeatherUtils.getWeatherEmoji(forecast.summary_forecast);
+    const isDark = this.isDarkColor(bg);
 
-    const element = document.createElement('div');
-    element.style.backgroundColor = color;
-    element.style.borderRadius = '50%';
-    element.style.border = '2px solid white';
-    element.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
-    element.style.width = '40px';
-    element.style.height = '40px';
-    element.style.display = 'flex';
-    element.style.alignItems = 'center';
-    element.style.justifyContent = 'center';
-    element.style.fontSize = '22px';
-    element.style.cursor = 'pointer';
-    element.style.transition = 'transform 0.2s, box-shadow 0.2s';
-    element.style.fontWeight = 'bold';
-    element.textContent = emoji;
+    const el = document.createElement('div');
+    el.style.backgroundColor = bg;
+    el.style.borderRadius = '50%';
+    el.style.width = '40px';
+    el.style.height = '40px';
+    el.style.display = 'flex';
+    el.style.alignItems = 'center';
+    el.style.justifyContent = 'center';
+    el.style.fontSize = '22px';
+    el.style.cursor = 'pointer';
+    el.style.transition = 'transform 0.2s, box-shadow 0.2s';
+    el.style.userSelect = 'none';
 
-    element.addEventListener('mouseenter', () => {
-      element.style.transform = 'scale(1.15)';
-      element.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+    el.style.border = isDark ? '2px solid rgba(255,255,255,0.9)' : '2px solid white';
+    el.style.boxShadow = isDark
+      ? '0 4px 12px rgba(0,0,0,0.55)'
+      : '0 2px 8px rgba(0,0,0,0.35)';
+
+    el.textContent = emoji;
+
+    el.addEventListener('mouseenter', () => {
+      el.style.transform = 'scale(1.15)';
+      el.style.boxShadow = isDark
+        ? '0 6px 16px rgba(0,0,0,0.65)'
+        : '0 5px 14px rgba(0,0,0,0.45)';
     });
 
-    element.addEventListener('mouseleave', () => {
-      element.style.transform = 'scale(1)';
-      element.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+    el.addEventListener('mouseleave', () => {
+      el.style.transform = 'scale(1)';
+      el.style.boxShadow = isDark
+        ? '0 4px 12px rgba(0,0,0,0.55)'
+        : '0 2px 8px rgba(0,0,0,0.35)';
     });
 
-    return element;
+    return el;
+  }
+
+  private isDarkColor(hex: string): boolean {
+    const h = (hex || '').replace('#', '');
+    if (h.length !== 6) return false;
+
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance < 0.45;
   }
 
   private showInfoWindow(
@@ -286,21 +307,21 @@ export class MapService {
 
   private smoothZoom(map: google.maps.Map, targetZoom: number, stepDelay = 80): void {
     const startZoom = map.getZoom() ?? 6;
-  
+
     if (startZoom === targetZoom) return;
-  
+
     const direction = targetZoom > startZoom ? 1 : -1;
     let current = startZoom;
-  
+
     const tick = () => {
       current += direction;
       map.setZoom(current);
-  
+
       if (current !== targetZoom) {
         window.setTimeout(tick, stepDelay);
       }
     };
-  
+
     window.setTimeout(tick, stepDelay);
   }
 
