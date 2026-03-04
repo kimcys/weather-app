@@ -10,10 +10,14 @@ import { LocationMatcherService } from '../../services/location-matcher.service'
 import { MapService } from '../../services/map.service';
 import { WeatherUtils } from '../../utils/weather-utils';
 import { WeatherCardsComponent } from '../weather-cards/weather-cards.component';
+import { MotorcycleCommuterComponent } from '../motorcycle-commuter/motorcycle-commuter.component';
+import { CommuteResultComponent } from '../commute-result/commute-result.component';
+import { CommuterSchedule, HourlyWeather, JourneyTime, MapLocation } from '../../model/motorcycle.model';
+import { MotorcycleCommuterService } from '../../services/motorcycle-commuter.service';
 
 @Component({
   selector: 'app-weather-map',
-  imports: [CommonModule, FormsModule, WeatherCardsComponent, MapLegendComponent],
+  imports: [CommonModule, FormsModule, WeatherCardsComponent, MapLegendComponent, MotorcycleCommuterComponent, CommuteResultComponent],
   templateUrl: './weather-map.component.html',
   styleUrl: './weather-map.component.css'
 })
@@ -38,7 +42,6 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   mapLoaded = false;
   locationsCount = 0;
   loadingMessage = 'Memulakan...';
-
   locationsLoading = false;
   locationsError: string | null = null;
 
@@ -47,11 +50,19 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     { value: 'Ds', label: 'Daerah' },
   ];
 
+  commuterWeekDays: CommuterSchedule[] = [];
+  commuterHomeToWork: JourneyTime = { departure: '08:00', arrival: '09:00' };
+  commuterWorkToHome: JourneyTime = { departure: '17:00', arrival: '18:00' };
+  commuterShowResults = false;
+  commuterHomeLocation: MapLocation | null = null;
+  commuterWorkLocation: MapLocation | null = null;
+
   constructor(
     private weatherService: WeatherService,
     private locationService: LocationService,
     private locationMatcher: LocationMatcherService,
-    private mapService: MapService
+    private mapService: MapService,
+    private motorcycleService: MotorcycleCommuterService
   ) { }
 
   ngOnInit(): void {
@@ -207,30 +218,30 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     forecasts: WeatherForecast[];
   }> {
     const result: Array<{ name: string; coords: { lat: number; lng: number }; forecasts: WeatherForecast[] }> = [];
-  
+
     const seenNames = new Set<string>();
     const seenCoords = new Set<string>();
-  
+
     const coordKey = (c: { lat: number; lng: number }) =>
       `${c.lat.toFixed(6)},${c.lng.toFixed(6)}`; // rounding avoids tiny float diffs
-  
+
     for (const [name, forecasts] of groups.entries()) {
       const nameKey = name.toLowerCase().trim().replace(/\s+/g, ' ');
       if (seenNames.has(nameKey)) continue;
-  
+
       const coords = this.locationMatcher.findCoordinates(name);
       if (!coords) continue;
-  
+
       const cKey = coordKey(coords);
       if (seenCoords.has(cKey)) {
         continue;
       }
-  
+
       seenNames.add(nameKey);
       seenCoords.add(cKey);
       result.push({ name, coords, forecasts });
     }
-  
+
     return result;
   }
 
@@ -315,4 +326,166 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   getLocationStats() {
     return this.locationMatcher.getLocationStats(this.getLocationsWithForecast());
   }
+
+  showMotorcycleRoute(event: {
+    home: { name: string; lat: number; lng: number; address: string };
+    work: { name: string; lat: number; lng: number; address: string };
+    homeToWorkTime: string;
+    workToHomeTime: string;
+  }) {
+    if (this.mapService.getMap()) {
+      this.mapService.clearRoutes();
+
+      this.mapService.showRoute(
+        { lat: event.home.lat, lng: event.home.lng },
+        { lat: event.work.lat, lng: event.work.lng },
+        `🏠 → 🏢 (${event.homeToWorkTime})`, '#3B82F6'
+      );
+
+      // Show route from work to home (balik)
+      this.mapService.showRoute(
+        { lat: event.work.lat, lng: event.work.lng },
+        { lat: event.home.lat, lng: event.home.lng },
+        `🏢 → 🏠 (${event.workToHomeTime})`, '#EF4444'
+      );
+
+      // Fit bounds to show both routes
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend({ lat: event.home.lat, lng: event.home.lng });
+      bounds.extend({ lat: event.work.lat, lng: event.work.lng });
+      this.mapService.getMap()?.fitBounds(bounds);
+    }
+  }
+
+  async onCommuterCalculate(event: {
+    homeLocation: MapLocation;
+    workLocation: MapLocation;
+    homeToWork: JourneyTime;
+    workToHome: JourneyTime;
+    weekDays: any[];
+  }) {
+    this.commuterHomeLocation = event.homeLocation;
+    this.commuterWorkLocation = event.workLocation;
+    this.commuterHomeToWork = event.homeToWork;
+    this.commuterWorkToHome = event.workToHome;
+
+    // Convert weekDays to CommuterSchedule with rainProbability
+    this.commuterWeekDays = event.weekDays.map(day => ({
+      ...day,
+      rainProbability: { homeToWork: 0, workToHome: 0 }
+    }));
+
+    await this.calculateCommuterRainProbability();
+    this.commuterShowResults = true;
+  }
+
+  async calculateCommuterRainProbability() {
+    if (!this.commuterHomeLocation || !this.commuterWorkLocation) return;
+
+    try {
+      const [homeHourly, workHourly] = await Promise.all([
+        firstValueFrom(this.motorcycleService.getHourlyForecast(
+          this.commuterHomeLocation.lat,
+          this.commuterHomeLocation.lng
+        )),
+        firstValueFrom(this.motorcycleService.getHourlyForecast(
+          this.commuterWorkLocation.lat,
+          this.commuterWorkLocation.lng
+        ))
+      ]);
+
+      this.commuterWeekDays.forEach(day => {
+        if (day.isWorking) {
+          const date = this.getDateWithinWeek(day.day);
+
+          day.rainProbability.homeToWork = this.calculateJourneyRainProbability(
+            homeHourly,
+            workHourly,
+            date,
+            this.commuterHomeToWork.departure,
+            this.commuterHomeToWork.arrival
+          );
+
+          day.rainProbability.workToHome = this.calculateJourneyRainProbability(
+            workHourly,
+            homeHourly,
+            date,
+            this.commuterWorkToHome.departure,
+            this.commuterWorkToHome.arrival
+          );
+        }
+      });
+
+    } catch (error) {
+      console.error('Error calculating rain probability:', error);
+    }
+  }
+
+  private calculateJourneyRainProbability(
+    startHourly: HourlyWeather,
+    endHourly: HourlyWeather,
+    date: string,
+    departureTime: string,
+    arrivalTime: string
+  ): number {
+    const departureHour = parseInt(departureTime.split(':')[0]);
+    const arrivalHour = parseInt(arrivalTime.split(':')[0]);
+
+    const startIndex = this.findHourlyIndex(startHourly.time, date, departureHour);
+    const endIndex = this.findHourlyIndex(endHourly.time, date, arrivalHour);
+
+    if (startIndex === -1 || endIndex === -1) return 0;
+
+    const startProb = startHourly.precipitation_probability[startIndex];
+    const endProb = endHourly.precipitation_probability[endIndex];
+
+    let totalProb = startProb + endProb;
+    let count = 2;
+
+    const duration = arrivalHour - departureHour;
+    if (duration > 1) {
+      for (let hour = 1; hour < duration; hour++) {
+        const midIndex = this.findHourlyIndex(startHourly.time, date, departureHour + hour);
+        if (midIndex !== -1) {
+          totalProb += startHourly.precipitation_probability[midIndex];
+          count++;
+        }
+      }
+    }
+
+    return Math.round(totalProb / count);
+  }
+
+  private findHourlyIndex(timeArray: string[], date: string, hour: number): number {
+    const hourStr = hour.toString().padStart(2, '0');
+    const targetTime = `${date}T${hourStr}:00`;
+    return timeArray.findIndex(time => time === targetTime);
+  }
+
+  private getDateWithinWeek(day: string): string {
+    const today = new Date();
+    const targetDayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(day);
+    const todayIndex = today.getDay();
+
+    let daysToAdd = targetDayIndex - todayIndex;
+    if (daysToAdd < 0) daysToAdd += 7;
+    if (daysToAdd >= 7) daysToAdd = daysToAdd % 7;
+
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + daysToAdd);
+
+    return targetDate.toISOString().split('T')[0];
+  }
+
+  onCommuterShowRoute() {
+    if (this.commuterHomeLocation && this.commuterWorkLocation) {
+      this.showMotorcycleRoute({
+        home: this.commuterHomeLocation,
+        work: this.commuterWorkLocation,
+        homeToWorkTime: `${this.commuterHomeToWork.departure} - ${this.commuterHomeToWork.arrival}`,
+        workToHomeTime: `${this.commuterWorkToHome.departure} - ${this.commuterWorkToHome.arrival}`
+      });
+    }
+  }
+
 }

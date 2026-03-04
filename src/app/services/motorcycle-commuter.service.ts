@@ -1,0 +1,32 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { HourlyWeather, WeatherApiResponse } from '../model/motorcycle.model';
+import { catchError, map, Observable, throwError } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class MotorcycleCommuterService {
+
+  constructor(private http: HttpClient) { }
+
+  getHourlyForecast(lat: number, lng: number): Observable<HourlyWeather> {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=precipitation_probability,temperature_2m&timezone=Asia/Kuala_Lumpur&forecast_days=7`;
+    console.log(`Fetching forecast for lat: ${lat}, lng: ${lng}`);
+    return this.http.get<WeatherApiResponse>(url).pipe(
+      map(response => {
+        console.log('API Response received:', {
+          hasHourly: !!response.hourly,
+          timeLength: response.hourly?.time?.length,
+          precipLength: response.hourly?.precipitation_probability?.length
+        });
+        return response.hourly;
+      }),
+      catchError(error => {
+        console.error('API Error:', error);
+        return throwError(() => new Error('Failed to fetch forecast'));
+      })
+    );
+  }
+
+}

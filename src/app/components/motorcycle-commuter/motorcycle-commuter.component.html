@@ -1,0 +1,112 @@
+<div class="bg-white rounded-xl shadow-lg p-4 mb-4">
+    <!-- Header -->
+    <div class="flex items-center gap-2 mb-4">
+        <span class="text-2xl">🏍️</span>
+        <h3 class="font-semibold text-gray-800">Penunggang Motor</h3>
+    </div>
+
+    <!-- Home Location with Google Search -->
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+            🏠 Lokasi Rumah
+        </label>
+        <input #homeSearchInput type="text" [(ngModel)]="homeLocation" (ngModelChange)="onLocationChange()"
+            placeholder="Cari alamat rumah..."
+            class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <div class="mt-1 text-xs text-gray-500">Taip alamat untuk carian Google Maps</div>
+    </div>
+
+    <!-- Work Location with Google Search -->
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+            🏢 Lokasi Kerja
+        </label>
+        <input #workSearchInput type="text" [(ngModel)]="workLocation" (ngModelChange)="onLocationChange()"
+            placeholder="Cari alamat kerja..."
+            class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <div class="mt-1 text-xs text-gray-500">Taip alamat untuk carian Google Maps</div>
+    </div>
+
+    <!-- Journey Times (Apply to all days) -->
+    <div class="mb-4 p-3 bg-blue-50 rounded-lg">
+        <h4 class="font-medium text-blue-800 mb-3 flex items-center gap-2">
+            <span class="text-lg">⏱️</span>
+            Masa Perjalanan (Sama untuk semua hari)
+        </h4>
+
+        <!-- Home to Work Journey -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                🏠 → 🏢 Bertolak ke Kerja
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <span class="text-xs text-gray-600">Bertolak pada</span>
+                    <select [(ngModel)]="homeToWork.departure" (ngModelChange)="onFormChange()"
+                        class="w-full p-2 border rounded-lg text-sm">
+                        <option *ngFor="let time of timeSlots" [value]="time">{{time}}</option>
+                    </select>
+                </div>
+                <div>
+                    <span class="text-xs text-gray-600">Sampai pada</span>
+                    <select [(ngModel)]="homeToWork.arrival" (ngModelChange)="onFormChange()"
+                        class="w-full p-2 border rounded-lg text-sm">
+                        <option *ngFor="let time of timeSlots" [value]="time">{{time}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Work to Home Journey -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                🏢 → 🏠 Bertolak Balik
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <span class="text-xs text-gray-600">Bertolak pada</span>
+                    <select [(ngModel)]="workToHome.departure" (ngModelChange)="onFormChange()"
+                        class="w-full p-2 border rounded-lg text-sm">
+                        <option *ngFor="let time of timeSlots" [value]="time">{{time}}</option>
+                    </select>
+                </div>
+                <div>
+                    <span class="text-xs text-gray-600">Sampai pada</span>
+                    <select [(ngModel)]="workToHome.arrival" (ngModelChange)="onFormChange()"
+                        class="w-full p-2 border rounded-lg text-sm">
+                        <option *ngFor="let time of timeSlots" [value]="time">{{time}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Journey Duration Info -->
+        <div *ngIf="selectedHomeLocation && selectedWorkLocation" class="mt-3 text-xs text-gray-600">
+            <div class="flex items-center gap-1">
+                <span class="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                Anggaran masa perjalanan:
+                <span class="font-medium">{{journeyDuration}}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Working Days Selection -->
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+            📅 Hari Bekerja
+        </label>
+        <div class="space-y-2 max-h-40 overflow-y-auto p-2 border border-gray-200 rounded-lg">
+            <div *ngFor="let day of weekDays" class="flex items-center p-2 hover:bg-gray-50 rounded">
+                <input type="checkbox" [id]="'day-' + day.day" [(ngModel)]="day.isWorking"
+                    (ngModelChange)="onFormChange()" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 mr-3">
+                <label [for]="'day-' + day.day" class="text-sm text-gray-700">{{day.label}}</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calculate Button -->
+    <button (click)="onCalculate()" [disabled]="!isFormValid()" class="w-full bg-linear-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-medium 
+               hover:from-blue-700 hover:to-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed">
+        🗺️ Kira Laluan & Kebarangkalian Hujan
+    </button>
+</div>

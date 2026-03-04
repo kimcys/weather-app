@@ -1,0 +1,79 @@
+<div class="bg-white rounded-xl shadow-lg p-4" *ngIf="showResults">
+    <!-- Rain Probability Summary -->
+    <div class="bg-blue-50 rounded-lg p-4 mb-4">
+        <h4 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+            <span class="text-xl">☔</span>
+            Kebarangkalian Hujan Mingguan
+        </h4>
+
+        <div class="space-y-3">
+            <div *ngFor="let day of getWorkingDays()" class="border-b border-blue-100 pb-2 last:border-0">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="font-medium text-blue-700">{{day.label}}</span>
+                </div>
+
+                <!-- Home to Work -->
+                <div class="mb-2">
+                    <div class="flex justify-between text-xs mb-1">
+                        <span>🏠 → 🏢 (Bertolak: {{homeToWork.departure}}, Sampai: {{homeToWork.arrival}})</span>
+                        <span [ngClass]="getRainColorClass(day.rainProbability.homeToWork)">
+                            {{day.rainProbability.homeToWork}}% hujan
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                        <div class="h-1.5 rounded-full" [ngClass]="getRainBarClass(day.rainProbability.homeToWork)"
+                            [style.width.%]="day.rainProbability.homeToWork"></div>
+                    </div>
+                </div>
+
+                <!-- Work to Home -->
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span>🏢 → 🏠 (Bertolak: {{workToHome.departure}}, Sampai: {{workToHome.arrival}})</span>
+                        <span [ngClass]="getRainColorClass(day.rainProbability.workToHome)">
+                            {{day.rainProbability.workToHome}}% hujan
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                        <div class="h-1.5 rounded-full" [ngClass]="getRainBarClass(day.rainProbability.workToHome)"
+                            [style.width.%]="day.rainProbability.workToHome"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Summary Cards -->
+    <div class="grid grid-cols-2 gap-2 mb-4">
+        <div class="bg-green-50 rounded-lg p-3 text-center">
+            <div class="text-2xl mb-1">🌤️</div>
+            <div class="text-xs text-gray-600">Hari Cerah</div>
+            <div class="font-bold text-green-600">{{getClearDays()}} hari</div>
+        </div>
+        <div class="bg-yellow-50 rounded-lg p-3 text-center">
+            <div class="text-2xl mb-1">☔</div>
+            <div class="text-xs text-gray-600">Hari Hujan</div>
+            <div class="font-bold text-yellow-600">{{getRainyDays()}} hari</div>
+        </div>
+    </div>
+
+    <!-- Route Button -->
+    <button (click)="onShowRoute()" class="w-full bg-linear-to-r from-green-600 to-green-700 text-white py-3 rounded-lg font-medium 
+               hover:from-green-700 hover:to-green-800 transition mb-4">
+        🗺️ Tunjuk Laluan di Peta
+    </button>
+
+    <!-- Safety Tips -->
+    <div *ngIf="getHighestRainDay() as highest" class="bg-orange-50 border-l-4 border-orange-500 rounded-lg p-3">
+        <div class="flex items-start gap-2">
+            <span class="text-xl">⚠️</span>
+            <div>
+                <p class="text-sm font-medium text-orange-800">Awas! Hari {{highest.day}}</p>
+                <p class="text-xs text-orange-700">
+                    Kebarangkalian hujan {{highest.probability}}% semasa perjalanan.
+                    Bawa peralatan hujan!
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

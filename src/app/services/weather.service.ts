@@ -1,8 +1,7 @@
 // services/weather.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { WeatherForecast } from '../model/forecast.model';
 
 @Injectable({

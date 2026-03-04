@@ -12,6 +12,7 @@ export class MapService {
   private infoWindow: google.maps.InfoWindow | null = null;
   private markers: google.maps.marker.AdvancedMarkerElement[] = [];
   private markerCluster: MarkerClusterer | null = null;
+  private directionsRenderers: google.maps.DirectionsRenderer[] = [];
 
   constructor(private ngZone: NgZone) { }
 
@@ -391,5 +392,65 @@ export class MapService {
         </div>
       </div>
     `;
+  }
+
+  showRoute(
+    start: {lat: number, lng: number}, 
+    end: {lat: number, lng: number}, 
+    label: string,
+    color: string = '#3B82F6'
+  ) {
+    const map = this.getMap();
+    if (!map) return;
+  
+    // Create directions service and renderer
+    const directionsService = new google.maps.DirectionsService();
+    const directionsRenderer = new google.maps.DirectionsRenderer({
+      map: map,
+      suppressMarkers: false,
+      polylineOptions: {
+        strokeColor: color,
+        strokeWeight: 5,
+        strokeOpacity: 0.8
+      }
+    });
+  
+    // Store renderer to clear later
+    this.directionsRenderers.push(directionsRenderer);
+  
+    // Calculate route
+    directionsService.route({
+      origin: start,
+      destination: end,
+      travelMode: google.maps.TravelMode.DRIVING
+    }, (response, status) => {
+      if (status === 'OK') {
+        directionsRenderer.setDirections(response);
+        
+        // Add info window with journey info
+        const infoWindow = new google.maps.InfoWindow({
+          content: `
+            <div class="p-2">
+              <strong>${label}</strong><br>
+              Jarak: ${response?.routes?.[0]?.legs?.[0]?.distance?.text ?? 'N/A'}<br>
+              Masa: ${response?.routes[0].legs[0].duration?.text}
+            </div>
+          `
+        });
+        
+        // Show info at midpoint
+        const midPoint = {
+          lat: (start.lat + end.lat) / 2,
+          lng: (start.lng + end.lng) / 2
+        };
+        infoWindow.setPosition(midPoint);
+        infoWindow.open(map);
+      }
+    });
+  }
+  
+  clearRoutes() {
+    this.directionsRenderers.forEach(renderer => renderer.setMap(null));
+    this.directionsRenderers = [];
   }
 }
