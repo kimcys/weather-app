@@ -32,7 +32,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   
   // Enhanced loading states
   isLoading = true;
-  isWeatherLoading = false; // New flag for weather data loading
+  isWeatherLoading = false;
   locationsLoaded = false;
   weatherLoaded = false;
   mapLoaded = false;
@@ -42,14 +42,9 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   locationsLoading = false;
   locationsError: string | null = null;
 
-  selectedLocationType: string = 'all';
+  selectedLocationType: string = 'Ds';
   locationTypes = [
-    { value: 'all', label: 'Semua' },
-    { value: 'St', label: 'Negeri' },
-    { value: 'Rc', label: 'Pusat Rekreasi' },
     { value: 'Ds', label: 'Daerah' },
-    { value: 'Tn', label: 'Bandar' },
-    { value: 'Dv', label: 'Bahagian' }
   ];
 
   constructor(
@@ -115,7 +110,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
         next: (data) => {
           this.forecasts = data;
           this.weatherLoaded = true;
-          this.isWeatherLoading = false; // Clear weather loading flag
+          this.isWeatherLoading = false;
           this.uniqueDates = [...new Set(data.map(f => f.date))].sort();
           
           if (this.forecasts.length > 0) {
@@ -218,8 +213,6 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (coords) {
         result.push({ name, coords, forecasts });
-      } else {
-        console.warn(`No coordinates found for location: ${name}`);
       }
     }
     return result;
@@ -260,7 +253,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onResetFilter(): void {
     this.filteredDate = '';
-    this.selectedLocationType = 'all';
+    this.selectedLocationType = 'Ds';
     this.updateMarkers();
   }
 

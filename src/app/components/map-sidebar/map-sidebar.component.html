@@ -16,21 +16,7 @@
             </button>
         </div>
     </div>
-
-    <div class="p-4 border-b">
-        <h3 class="text-lg font-semibold mb-3 text-gray-800">📍 Tapis Mengikut Jenis</h3>
-        <div class="flex flex-wrap gap-2">
-            <button *ngFor="let type of locationTypes" (click)="onLocationTypeFilter.emit(type.value)"
-                class="px-3 py-1 rounded-full text-sm transition"
-                [class.bg-blue-600]="selectedLocationType === type.value"
-                [class.text-white]="selectedLocationType === type.value"
-                [class.bg-gray-200]="selectedLocationType !== type.value"
-                [class.text-gray-700]="selectedLocationType !== type.value">
-                {{ type.label }}
-            </button>
-        </div>
-    </div>
-
+    
     <!-- Selected Location Details -->
     <div *ngIf="selectedForecast" class="p-4 bg-blue-50 border-b">
         <div class="flex justify-between items-start mb-2">

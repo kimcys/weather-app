@@ -17,13 +17,9 @@ export class MapSidebarComponent {
   @Input() locations: string[] = [];
   @Input() forecasts: WeatherForecast[] = [];
   @Input() filteredDate: string = '';
-  @Input() selectedLocationType: string = 'St';
+  @Input() selectedLocationType: string = 'Ds';
   @Input() locationTypes = [
-    { value: 'St', label: 'Negeri' },
-    { value: 'Rc', label: 'Pusat Rekreasi' },
     { value: 'Ds', label: 'Daerah' },
-    { value: 'Tn', label: 'Bandar' },
-    { value: 'Dv', label: 'Bahagian' }
   ];
 
   @Output() onDateFilter = new EventEmitter<string>();
