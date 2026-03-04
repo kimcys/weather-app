@@ -40,6 +40,8 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   locationsLoaded = false;
   weatherLoaded = false;
   mapLoaded = false;
+  isCommuterLoading = false;
+  commuterLoadingMessage = '';
   locationsCount = 0;
   loadingMessage = 'Memulakan...';
   locationsLoading = false;
@@ -364,6 +366,10 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     workToHome: JourneyTime;
     weekDays: any[];
   }) {
+    // Show loading
+    this.isCommuterLoading = true;
+    this.commuterLoadingMessage = 'Mendapatkan data ramalan cuaca...';
+    
     this.commuterHomeLocation = event.homeLocation;
     this.commuterWorkLocation = event.workLocation;
     this.commuterHomeToWork = event.homeToWork;
@@ -376,6 +382,8 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     }));
 
     await this.calculateCommuterRainProbability();
+    // Hide loading
+    this.isCommuterLoading = false;
     this.commuterShowResults = true;
   }
 
@@ -383,17 +391,20 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.commuterHomeLocation || !this.commuterWorkLocation) return;
 
     try {
-      const [homeHourly, workHourly] = await Promise.all([
-        firstValueFrom(this.motorcycleService.getHourlyForecast(
-          this.commuterHomeLocation.lat,
-          this.commuterHomeLocation.lng
-        )),
-        firstValueFrom(this.motorcycleService.getHourlyForecast(
-          this.commuterWorkLocation.lat,
-          this.commuterWorkLocation.lng
-        ))
-      ]);
+      this.commuterLoadingMessage = 'Memproses data untuk lokasi rumah...';
+      const homeHourly = await firstValueFrom(this.motorcycleService.getHourlyForecast(
+        this.commuterHomeLocation.lat,
+        this.commuterHomeLocation.lng
+      ));
 
+      this.commuterLoadingMessage = 'Memproses data untuk lokasi kerja...';
+      const workHourly = await firstValueFrom(this.motorcycleService.getHourlyForecast(
+        this.commuterWorkLocation.lat,
+        this.commuterWorkLocation.lng
+      ));
+
+      this.commuterLoadingMessage = 'Mengira kebarangkalian hujan...';
+      
       this.commuterWeekDays.forEach(day => {
         if (day.isWorking) {
           const date = this.getDateWithinWeek(day.day);
@@ -421,6 +432,14 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  getCommuterProgress(): string {
+    if (this.commuterLoadingMessage.includes('rumah')) return '33%';
+    if (this.commuterLoadingMessage.includes('kerja')) return '66%';
+    if (this.commuterLoadingMessage.includes('Mengira')) return '90%';
+    return '50%';
+  }
+
+  
   private calculateJourneyRainProbability(
     startHourly: HourlyWeather,
     endHourly: HourlyWeather,

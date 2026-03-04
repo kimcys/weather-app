@@ -23,8 +23,171 @@
         (onDateFilter)="onDateFilter($event)">
     </app-weather-cards>
 
+    <div *ngIf="isLoading && isWeatherLoading" class="bg-white flex items-center justify-center z-20">
+        <div class="text-center max-w-md mx-auto px-6">
+            <!-- Animated weather icon -->
+            <div class="relative mb-8">
+                <div class="text-8xl animate-bounce">🌤️</div>
+                <div
+                    class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-blue-200 rounded-full animate-pulse">
+                </div>
+            </div>
+
+            <!-- Main loading message -->
+            <h2 class="text-3xl font-bold text-gray-800 mb-3">Memuatkan Data Cuaca</h2>
+            <p class="text-gray-600 mb-8">Sila tunggu sebentar sementara kami mengumpulkan ramalan cuaca terkini
+                untuk seluruh Malaysia.</p>
+
+            <!-- Progress steps -->
+            <div class="space-y-4 mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                    </div>
+                    <span class="text-gray-700">Menyambung ke pelayan</span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
+                                (locationsLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
+                        <div *ngIf="locationsLoaded" class="text-white">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <div *ngIf="!locationsLoaded" class="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                    <span class="text-gray-700">Memuatkan lokasi ({{ locationsCount || 0 }} ditemui)</span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
+                                (weatherLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
+                        <div *ngIf="weatherLoaded" class="text-white">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <div *ngIf="!weatherLoaded" class="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                    <span class="text-gray-700">Memproses ramalan cuaca <span *ngIf="forecasts.length > 0">({{
+                            forecasts.length }} direkod)</span></span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
+                                (mapLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
+                        <div *ngIf="mapLoaded" class="text-white">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <div *ngIf="!mapLoaded" class="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                    <span class="text-gray-700">Menjana peta interaktif</span>
+                </div>
+            </div>
+
+            <!-- Loading spinner and message -->
+            <div class="flex items-center justify-center gap-3 text-blue-600">
+                <div class="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent">
+                </div>
+                <span class="font-medium">{{ loadingMessage }}</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Map Section with 3-column grid -->
     <div class="flex-1 grid grid-cols-5 gap-4 p-4">
+
+        <div *ngIf="isLoading" class="absolute inset-0 bg-white z-40 flex items-center justify-center"
+            style="grid-column: 1 / -1;">
+            <div class="text-center max-w-md mx-auto px-6">
+                <!-- Animated weather icon -->
+                <div class="relative mb-8">
+                    <div class="text-8xl animate-bounce">🌤️</div>
+                    <div
+                        class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-blue-200 rounded-full animate-pulse">
+                    </div>
+                </div>
+
+                <!-- Main loading message -->
+                <h2 class="text-3xl font-bold text-gray-800 mb-3">Memuatkan Data Cuaca</h2>
+                <p class="text-gray-600 mb-8">Sila tunggu sebentar sementara kami mengumpulkan ramalan cuaca terkini
+                    untuk seluruh Malaysia.</p>
+
+                <!-- Progress steps -->
+                <div class="space-y-4 mb-8">
+                    <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7">
+                                </path>
+                            </svg>
+                        </div>
+                        <span class="text-gray-700">Menyambung ke pelayan</span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
+                               (locationsLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
+                            <div *ngIf="locationsLoaded" class="text-white">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <div *ngIf="!locationsLoaded" class="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <span class="text-gray-700">Memuatkan lokasi ({{ locationsCount || 0 }} ditemui)</span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
+                               (weatherLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
+                            <div *ngIf="weatherLoaded" class="text-white">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <div *ngIf="!weatherLoaded" class="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <span class="text-gray-700">Memproses ramalan cuaca <span *ngIf="forecasts.length > 0">({{
+                                forecasts.length }} direkod)</span></span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
+                               (mapLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
+                            <div *ngIf="mapLoaded" class="text-white">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <div *ngIf="!mapLoaded" class="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <span class="text-gray-700">Menjana peta interaktif</span>
+                    </div>
+                </div>
+
+                <!-- Loading spinner and message -->
+                <div class="flex items-center justify-center gap-3 text-blue-600">
+                    <div class="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent">
+                    </div>
+                    <span class="font-medium">{{ loadingMessage }}</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Left Column - Form -->
         <div class="relative col-span-1">
             <app-motorcycle-commuter (calculate)="onCommuterCalculate($event)">
@@ -63,91 +226,6 @@
                 </div>
             </div>
 
-            <!-- Initial Loading - Fullscreen loading within center column -->
-            <div *ngIf="isLoading || isWeatherLoading"
-                class="absolute inset-0 bg-white flex items-center justify-center z-20">
-                <div class="text-center max-w-md mx-auto px-6">
-                    <!-- Animated weather icon -->
-                    <div class="relative mb-8">
-                        <div class="text-8xl animate-bounce">🌤️</div>
-                        <div
-                            class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-blue-200 rounded-full animate-pulse">
-                        </div>
-                    </div>
-
-                    <!-- Main loading message -->
-                    <h2 class="text-3xl font-bold text-gray-800 mb-3">Memuatkan Data Cuaca</h2>
-                    <p class="text-gray-600 mb-8">Sila tunggu sebentar sementara kami mengumpulkan ramalan cuaca terkini
-                        untuk seluruh Malaysia.</p>
-
-                    <!-- Progress steps -->
-                    <div class="space-y-4 mb-8">
-                        <div class="flex items-center gap-3">
-                            <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <span class="text-gray-700">Menyambung ke pelayan</span>
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
-                                (locationsLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
-                                <div *ngIf="locationsLoaded" class="text-white">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </div>
-                                <div *ngIf="!locationsLoaded" class="w-2 h-2 bg-white rounded-full"></div>
-                            </div>
-                            <span class="text-gray-700">Memuatkan lokasi ({{ locationsCount || 0 }} ditemui)</span>
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
-                                (weatherLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
-                                <div *ngIf="weatherLoaded" class="text-white">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </div>
-                                <div *ngIf="!weatherLoaded" class="w-2 h-2 bg-white rounded-full"></div>
-                            </div>
-                            <span class="text-gray-700">Memproses ramalan cuaca <span *ngIf="forecasts.length > 0">({{
-                                    forecasts.length }} direkod)</span></span>
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <div [class]="'w-6 h-6 rounded-full flex items-center justify-center shrink-0 ' + 
-                                (mapLoaded ? 'bg-green-500' : 'bg-blue-500 animate-pulse')">
-                                <div *ngIf="mapLoaded" class="text-white">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </div>
-                                <div *ngIf="!mapLoaded" class="w-2 h-2 bg-white rounded-full"></div>
-                            </div>
-                            <span class="text-gray-700">Menjana peta interaktif</span>
-                        </div>
-                    </div>
-
-                    <!-- Loading spinner and message -->
-                    <div class="flex items-center justify-center gap-3 text-blue-600">
-                        <div class="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent">
-                        </div>
-                        <span class="font-medium">{{ loadingMessage }}</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- Location Error State -->
             <div *ngIf="locationsError && !mapError && !isWeatherLoading"
                 class="absolute inset-0 bg-white bg-opacity-95 flex items-center justify-center z-20">
@@ -180,8 +258,37 @@
 
         <!-- Right Column - Result -->
         <div class="relative col-span-1">
+            <!-- Loading Overlay -->
+            <div *ngIf="isCommuterLoading"
+                class="absolute inset-0 bg-white bg-opacity-90 rounded-xl shadow-lg z-20 flex items-center justify-center"
+                style="min-height: 200px;">
+                <div class="text-center p-6">
+                    <div class="relative mb-4">
+                        <div class="text-4xl animate-bounce">☔</div>
+                        <div
+                            class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-blue-200 rounded-full animate-pulse">
+                        </div>
+                    </div>
+                    <div class="text-lg font-semibold text-gray-800 mb-2">Mengira Ramalan Hujan</div>
+                    <p class="text-sm text-gray-600 mb-3">{{ commuterLoadingMessage }}</p>
+
+                    <!-- Progress bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div class="bg-blue-600 h-2 rounded-full animate-pulse" [style.width]="getCommuterProgress()">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-2 text-blue-600">
+                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent">
+                        </div>
+                        <span class="text-xs">Sila tunggu...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Component -->
             <app-commute-result [weekDays]="commuterWeekDays" [homeToWork]="commuterHomeToWork"
-                [workToHome]="commuterWorkToHome" [showResults]="commuterShowResults"
+                [workToHome]="commuterWorkToHome" [showResults]="commuterShowResults && !isCommuterLoading"
                 [homeLocation]="commuterHomeLocation" [workLocation]="commuterWorkLocation"
                 (showRoute)="onCommuterShowRoute()">
             </app-commute-result>
