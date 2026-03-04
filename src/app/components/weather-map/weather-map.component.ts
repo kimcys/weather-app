@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MapSidebarComponent } from '../map-sidebar/map-sidebar.component';
 import { MapLegendComponent } from '../map-legend/map-legend.component';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { WeatherForecast } from '../../model/forecast.model';
@@ -10,10 +9,11 @@ import { LocationService } from '../../services/location.service';
 import { LocationMatcherService } from '../../services/location-matcher.service';
 import { MapService } from '../../services/map.service';
 import { WeatherUtils } from '../../utils/weather-utils';
+import { WeatherCardsComponent } from '../weather-cards/weather-cards.component';
 
 @Component({
   selector: 'app-weather-map',
-  imports: [CommonModule, FormsModule, MapSidebarComponent, MapLegendComponent],
+  imports: [CommonModule, FormsModule, WeatherCardsComponent, MapLegendComponent],
   templateUrl: './weather-map.component.html',
   styleUrl: './weather-map.component.css'
 })

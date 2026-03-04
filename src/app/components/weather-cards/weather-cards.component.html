@@ -1,0 +1,215 @@
+<div class="bg-white border-b border-gray-200 shadow-sm py-4 px-4">
+    <div class="container mx-auto">
+        <!-- Filter Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="flex items-center gap-3">
+                <!-- Location Type Filter -->
+                <select [ngModel]="selectedLocationType" (ngModelChange)="onLocationTypeFilter.emit($event)"
+                    class="text-sm p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                    <option *ngFor="let type of locationTypes" [value]="type.value">
+                        {{ type.label }}
+                    </option>
+                </select>
+
+                <!-- Date Filter -->
+                <div class="flex items-center gap-2">
+                    <select [ngModel]="filteredDate" (ngModelChange)="onDateFilter.emit($event)"
+                        class="text-sm p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        <option value="">Semua Tarikh</option>
+                        <option *ngFor="let date of uniqueDates" [value]="date">
+                            {{ date | date:'dd/MM/yyyy' }}
+                        </option>
+                    </select>
+                    <button *ngIf="filteredDate" (click)="onResetFilter.emit()"
+                        class="p-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition whitespace-nowrap">
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Location Count -->
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">
+                    {{ locations.length }} lokasi
+                </span>
+            </div>
+        </div>
+
+        <!-- Main Row: Selected Card + Scrollable Cards -->
+        <div class="relative flex flex-row gap-4 min-h-36">
+            <!-- Selected Card Section (Static on Left) -->
+            <div class="flex-none w-72">
+                <!-- Selected Card -->
+                <div *ngIf="selectedForecast" 
+                    class="relative bg-linear-to-br from-blue-50 to-white rounded-xl border-2 border-blue-400 shadow-lg p-4 h-full flex flex-col">
+                    
+                    <!-- Selected Badge -->
+                    <div class="absolute -top-2 -right-2 bg-blue-500 text-white px-2 py-0.5 rounded-full text-xs font-medium shadow-lg z-10">
+                        Dipilih
+                    </div>
+
+                    <!-- Card Content - Flex column to match height -->
+                    <div class="flex flex-col h-full">
+                        <!-- Location Header with Icon -->
+                        <div class="flex items-start gap-3 mb-2">
+                            <span class="text-4xl">{{ getWeatherEmoji(selectedForecast.summary_forecast) }}</span>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold text-gray-800 truncate text-base">
+                                    {{ selectedForecast.location.location_name }}
+                                </h4>
+                                <p class="text-xs text-gray-500 truncate">
+                                    {{ selectedForecast.date | date:'EEEE, dd MMM' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Temperature Row -->
+                        <div class="flex justify-between gap-2 mb-2">
+                            <div class="flex-1 bg-white/80 rounded-lg px-2 py-1 text-center">
+                                <span class="text-xs text-gray-500">Min</span>
+                                <span class="text-sm font-bold text-blue-600 ml-1">{{ selectedForecast.min_temp }}°</span>
+                            </div>
+                            <div class="flex-1 bg-white/80 rounded-lg px-2 py-1 text-center">
+                                <span class="text-xs text-gray-500">Max</span>
+                                <span class="text-sm font-bold text-red-500 ml-1">{{ selectedForecast.max_temp }}°</span>
+                            </div>
+                        </div>
+
+                        <!-- Time-based Forecast - 3 columns -->
+                        <div class="grid grid-cols-3 gap-1 mt-auto">
+                            <div class="text-center bg-white/80 p-1.5 rounded-lg">
+                                <div class="text-[10px] text-gray-500">Pagi</div>
+                                <div class="text-lg">{{ getWeatherEmoji(selectedForecast.morning_forecast) }}</div>
+                                <div class="text-[8px] text-gray-500 truncate">{{ selectedForecast.morning_forecast }}</div>
+                            </div>
+                            <div class="text-center bg-white/80 p-1.5 rounded-lg">
+                                <div class="text-[10px] text-gray-500">Petang</div>
+                                <div class="text-lg">{{ getWeatherEmoji(selectedForecast.afternoon_forecast) }}</div>
+                                <div class="text-[8px] text-gray-500 truncate">{{ selectedForecast.afternoon_forecast }}</div>
+                            </div>
+                            <div class="text-center bg-white/80 p-1.5 rounded-lg">
+                                <div class="text-[10px] text-gray-500">Malam</div>
+                                <div class="text-lg">{{ getWeatherEmoji(selectedForecast.night_forecast) }}</div>
+                                <div class="text-[8px] text-gray-500 truncate">{{ selectedForecast.night_forecast }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Placeholder Card (when no location selected) -->
+                <div *ngIf="!selectedForecast" 
+                    class="bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 p-4 h-full flex flex-col items-center justify-center text-center">
+                    <span class="text-5xl mb-3">📍</span>
+                    <h4 class="font-medium text-gray-700 mb-1">Tiada Lokasi Dipilih</h4>
+                    <p class="text-xs text-gray-500">Klik pada mana-mana lokasi untuk melihat ramalan terperinci</p>
+                    <div class="mt-3 text-blue-500 animate-pulse">
+                        <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7m14-8l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scrollable Cards Section -->
+            <div class="flex-1 min-w-0 relative">
+                <!-- Section Header and Controls -->
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-medium text-gray-700">
+                        Senarai Lokasi Lain
+                        <span class="ml-2 text-xs text-gray-500">({{ getOtherLocations().length }})</span>
+                    </h3>
+                    <!-- Scroll Controls -->
+                    <div class="flex gap-1">
+                        <button (click)="scrollLeft()"
+                            class="p-1.5 bg-gray-100 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            [disabled]="!canScrollLeft">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <button (click)="scrollRight()"
+                            class="p-1.5 bg-gray-100 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            [disabled]="!canScrollRight">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- linear Fade Edges -->
+                <div class="absolute left-0 top-8 bottom-0 w-12 bg-linear-to-r from-white to-transparent z-10 pointer-events-none"></div>
+                <div class="absolute right-0 top-8 bottom-0 w-12 bg-linear-to-l from-white to-transparent z-10 pointer-events-none"></div>
+
+                <!-- Cards Wrapper -->
+                <div #scrollContainer class="overflow-x-auto scroll-smooth hide-scrollbar" (scroll)="onScroll()" style="height: calc(100% - 2rem);">
+                    <div class="flex gap-3 h-full items-stretch">
+                        <!-- Regular Cards (excluding selected) -->
+                        <ng-container *ngFor="let location of getOtherLocations(); trackBy: trackByLocation">
+                            <div (click)="onLocationSelect.emit(location)"
+                                class="flex-none w-56 cursor-pointer transform transition-all duration-200 hover:-translate-y-1 h-full">
+                                
+                                <!-- Card Content - Fixed height to match selected card -->
+                                <div class="bg-white rounded-xl border-2 p-3 h-full flex flex-col"
+                                    [class.border-blue-300]="isSelectedLocation(location)"
+                                    [class.border-gray-200]="!isSelectedLocation(location)"
+                                    [class.shadow-md]="isSelectedLocation(location)">
+                                    
+                                    <!-- Location Header -->
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-semibold text-gray-800 truncate text-sm flex-1">{{ location }}</h4>
+                                        <span class="text-xl ml-1">{{ getLatestForecastEmoji(location) }}</span>
+                                    </div>
+                                    
+                                    <!-- Weather Summary - flex-1 to push temperature down -->
+                                    <p class="text-xs text-gray-600 mb-2 line-clamp-2 flex-1">
+                                        {{ getLatestForecastSummary(location) }}
+                                    </p>
+                                    
+                                    <!-- Temperature (always at bottom) -->
+                                    <div class="flex items-center justify-between text-xs mt-auto pt-1 border-t border-gray-100">
+                                        <span class="text-gray-500">🌡️</span>
+                                        <span class="font-medium text-gray-700">
+                                            {{ getLatestForecastTemp(location) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+
+                        <!-- Duplicate Cards for Infinite Loop Effect -->
+                        <ng-container *ngIf="getOtherLocations().length > 4">
+                            <div *ngFor="let location of getOtherLocations(); trackBy: trackByLocation"
+                                (click)="onLocationSelect.emit(location)"
+                                class="flex-none w-56 cursor-pointer transform transition-all duration-200 hover:-translate-y-1 h-full duplicate-card"
+                                aria-hidden="true">
+                                
+                                <div class="bg-white rounded-xl border-2 border-gray-200 p-3 h-full flex flex-col">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-semibold text-gray-800 truncate text-sm flex-1">{{ location }}</h4>
+                                        <span class="text-xl ml-1">{{ getLatestForecastEmoji(location) }}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600 mb-2 line-clamp-2 flex-1">
+                                        {{ getLatestForecastSummary(location) }}
+                                    </p>
+                                    <div class="flex items-center justify-between text-xs mt-auto pt-1 border-t border-gray-100">
+                                        <span class="text-gray-500">🌡️</span>
+                                        <span class="font-medium text-gray-700">
+                                            {{ getLatestForecastTemp(location) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+
+                        <!-- Empty state for scrollable cards -->
+                        <div *ngIf="getOtherLocations().length === 0" 
+                            class="flex items-center justify-center w-full h-full min-h-40">
+                            <p class="text-sm text-gray-400">Tiada lokasi lain</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
