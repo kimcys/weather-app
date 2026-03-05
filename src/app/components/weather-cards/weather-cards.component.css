@@ -74,11 +74,6 @@
   height: 100%;
 }
 
-.flex-col {
-  display: flex;
-  flex-direction: column;
-}
-
 .mt-auto {
   margin-top: auto;
 }
@@ -106,4 +101,37 @@ button:active:not(:disabled) {
 /* Card click animation */
 .cursor-pointer:active {
   transform: scale(0.98);
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Touch optimizations */
+.touch-pan-x {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.overscroll-contain {
+  overscroll-behavior-x: contain;
+}
+
+.touch-manipulation {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Active state for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .active\:scale-95:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
 }
