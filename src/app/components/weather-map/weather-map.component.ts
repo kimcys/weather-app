@@ -24,6 +24,7 @@ import { MotorcycleCommuterService } from '../../services/motorcycle-commuter.se
 export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
 
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
+  @ViewChild(MotorcycleCommuterComponent) motorcycleCommuter!: MotorcycleCommuterComponent;
 
   private destroy$ = new Subject<void>();
   private apiLoaded = false;
@@ -33,6 +34,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
   uniqueDates: string[] = [];
   todayLabel = '';
   mapError = false;
+  showRouteHomeWork = false;
 
   commuterLoadingMessage = '';
   locationsLoading = false;
@@ -502,6 +504,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
   }
 
   onCommuterShowRoute() {
+    this.showRouteHomeWork = true;
     if (this.commuterHomeLocation && this.commuterWorkLocation) {
       this.showMotorcycleRoute({
         home: this.commuterHomeLocation,
@@ -509,6 +512,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
         homeToWorkTime: `${this.commuterHomeToWork.departure} - ${this.commuterHomeToWork.arrival}`,
         workToHomeTime: `${this.commuterWorkToHome.departure} - ${this.commuterWorkToHome.arrival}`
       });
+      this.scrollToMap();
     }
   }
 
@@ -529,8 +533,9 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
           // Reverse geocode to get location name
           const geocoder = new google.maps.Geocoder();
           geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
-            if (status === 'OK' && results && results[0]) {
-              this.currentLocationName = results[0].formatted_address.split(',')[0];
+            if (status === 'OK' && results?.length) {
+              const best = results.find(r => !this.isPlusCode((r.formatted_address ?? '').split(',')[0].trim())) ?? results[0];
+              this.currentLocationName = this.pickBestLocationName(best);
             } else {
               this.currentLocationName = 'Lokasi Semasa';
             }
@@ -580,6 +585,38 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
       minute: '2-digit',
       hour12: false
     });
+  }
+
+  private isPlusCode(text: string): boolean {
+    return /\+/.test(text) && /^[A-Z0-9]{4,}\+[A-Z0-9]{2,}/i.test(text.trim());
+  }
+
+  private pickBestLocationName(result: any): string {
+    const comps = result.address_components ?? [];
+
+    const get = (type: string) =>
+      comps.find((c: any) => c.types?.includes(type))?.long_name as string | undefined;
+
+    const candidate =
+      get('premise') ||                         // condo/building name (if exists)
+      get('point_of_interest') ||               // POI
+      get('establishment') ||                   // place name
+      get('route') ||                           // street name
+      get('sublocality_level_1') ||             // area
+      get('neighborhood') ||                    // neighborhood
+      get('locality') ||                        // city
+      get('administrative_area_level_2') ||     // district
+      get('administrative_area_level_1');       // state
+
+    if (candidate) return candidate;
+
+    const formatted = (result.formatted_address ?? '').trim();
+    if (!formatted) return 'Lokasi Semasa';
+    const firstPart = formatted.split(',')[0].trim();
+    if (this.isPlusCode(firstPart)) {
+      return formatted.split(',')[1]?.trim() || 'Lokasi Semasa';
+    }
+    return firstPart || 'Lokasi Semasa';
   }
 
   getCurrentTemperature(): number {
@@ -674,5 +711,43 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
     return result;
   }
 
+  private scrollToMap(): void {
+    setTimeout(() => {
+      const mapElement = document.getElementById('map');
+      if (mapElement) {
+        mapElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
 
+        // Optional: Add a highlight effect
+        mapElement.classList.add('ring-4', 'ring-blue-300', 'ring-opacity-50');
+        setTimeout(() => {
+          mapElement.classList.remove('ring-4', 'ring-blue-300', 'ring-opacity-50');
+        }, 1000);
+      }
+    }, 100);
+  }
+
+  onClearCommuterResults(): void {
+    this.commuterWeekDays = [];
+    this.commuterHomeToWork = { departure: '08:00', arrival: '09:00' };
+    this.commuterWorkToHome = { departure: '17:00', arrival: '18:00' };
+    this.commuterShowResults = false;
+    this.commuterHomeLocation = null;
+    this.commuterWorkLocation = null;
+    this.showRouteHomeWork = false;
+    if (this.mapService.getMap()) {
+      this.mapService.clearRoutes();
+    }
+    if (this.motorcycleCommuter) {
+      this.motorcycleCommuter.resetForm();
+    }
+  }
+
+  onClearMapRoutes(): void {
+    if (this.mapService.getMap()) {
+      this.mapService.clearRoutes();
+    }
+  }
 }

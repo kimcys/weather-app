@@ -19,11 +19,18 @@
     </div>
 
     <!-- Results Section -->
-    <div *ngIf="showResults" class="space-y-6">
+    <div *ngIf="showResults" class="space-y-4">
         <!-- Header Summary -->
         <div class="flex items-center justify-between">
             <h3 class="text-sm font-medium text-gray-500">Ramalan Mingguan</h3>
             <div class="flex items-center gap-2">
+                <button (click)="onClearResults()" 
+                    class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors duration-200 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span>Kosongkan</span>
+                </button>
                 <span class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
                     {{getWorkingDays().length}} hari bekerja
                 </span>
@@ -69,6 +76,35 @@
                     <div class="h-1 bg-blue-400 rounded-full"
                         [style.width.%]="(getRainyDays() / getWorkingDays().length) * 100">
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Safety Alert -->
+        <div *ngIf="getHighestRainDay() as highest" class="group relative overflow-hidden rounded-xl bg-linear-to-r from-amber-50 to-orange-50 
+                        border border-amber-200/50 p-4 hover:border-amber-300 transition-all duration-200">
+
+            <!-- Decorative Line -->
+            <div class="absolute left-0 top-0 bottom-0 w-1 bg-linear-to-b from-amber-400 to-orange-400"></div>
+
+            <div class="flex items-start gap-3 pl-2">
+                <!-- Icon -->
+                <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-xl shadow-sm">
+                    ⚠️
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                        <h5 class="text-sm font-semibold text-gray-800">Awas! Hari {{highest.day}}</h5>
+                        <span class="text-xs px-2 py-0.5 bg-white text-amber-600 rounded-full">
+                            {{highest.probability}}% hujan
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed">
+                        Kebarangkalian hujan tinggi semasa perjalanan.
+                        <span class="text-amber-600 font-medium">Bawa peralatan hujan!</span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -173,39 +209,9 @@
                            focus:ring-4 focus:ring-blue-500/20 
                            transition-all duration-200 
                            flex items-center justify-center gap-2
-                           shadow-sm hover:shadow">
-                <span class="text-lg">🗺️</span>
+                           shadow-sm hover:shadow cursor-pointer">
                 Tunjuk Laluan di Peta
             </button>
-
-            <!-- Safety Alert -->
-            <div *ngIf="getHighestRainDay() as highest" class="group relative overflow-hidden rounded-xl bg-linear-to-r from-amber-50 to-orange-50 
-                        border border-amber-200/50 p-4 hover:border-amber-300 transition-all duration-200">
-
-                <!-- Decorative Line -->
-                <div class="absolute left-0 top-0 bottom-0 w-1 bg-linear-to-b from-amber-400 to-orange-400"></div>
-
-                <div class="flex items-start gap-3 pl-2">
-                    <!-- Icon -->
-                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-xl shadow-sm">
-                        ⚠️
-                    </div>
-
-                    <!-- Content -->
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                            <h5 class="text-sm font-semibold text-gray-800">Awas! Hari {{highest.day}}</h5>
-                            <span class="text-xs px-2 py-0.5 bg-white text-amber-600 rounded-full">
-                                {{highest.probability}}% hujan
-                            </span>
-                        </div>
-                        <p class="text-xs text-gray-600 leading-relaxed">
-                            Kebarangkalian hujan tinggi semasa perjalanan.
-                            <span class="text-amber-600 font-medium">Bawa peralatan hujan!</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>

@@ -146,7 +146,6 @@ export class MotorcycleCommuterComponent {
     return this.weekDays.filter(day => day.isWorking).length;
   }
 
-
   onCalculate() {
     if (this.selectedHomeLocation && this.selectedWorkLocation) {
       this.calculate.emit({
@@ -158,4 +157,29 @@ export class MotorcycleCommuterComponent {
       });
     }
   }
+
+  resetForm(): void {
+    this.homeLocation = '';
+    this.workLocation = '';
+    this.selectedHomeLocation = null;
+    this.selectedWorkLocation = null;
+    this.homeToWork = { departure: '08:00', arrival: '09:00' };
+    this.workToHome = { departure: '17:00', arrival: '18:00' };
+    this.weekDays = [
+      { day: 'Monday', label: 'Isnin', isWorking: true },
+      { day: 'Tuesday', label: 'Selasa', isWorking: true },
+      { day: 'Wednesday', label: 'Rabu', isWorking: true },
+      { day: 'Thursday', label: 'Khamis', isWorking: true },
+      { day: 'Friday', label: 'Jumaat', isWorking: true },
+      { day: 'Saturday', label: 'Sabtu', isWorking: false },
+      { day: 'Sunday', label: 'Ahad', isWorking: false }
+    ];
+    this.journeyDuration = '~60 minit';
+  }
+
+  hasData(): boolean {
+    return !!(this.selectedHomeLocation || this.selectedWorkLocation ||
+      this.weekDays.some(day => day.isWorking !== true));
+  }
+
 }

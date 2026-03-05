@@ -17,6 +17,7 @@ export class CommuteResultComponent {
   @Input() homeLocation: MapLocation | null = null;
   @Input() workLocation: MapLocation | null = null;
   @Output() showRoute = new EventEmitter<void>();
+  @Output() clearResults = new EventEmitter<void>();
 
   getWorkingDays(): CommuterSchedule[] {
     return this.weekDays.filter(day => day.isWorking);
@@ -75,7 +76,7 @@ export class CommuteResultComponent {
   onShowRoute() {
     this.showRoute.emit();
   }
-  
+
   getDailyAverageRain(day: any): number {
     return Math.round((day.rainProbability.homeToWork + day.rainProbability.workToHome) / 2);
   }
@@ -97,4 +98,9 @@ export class CommuteResultComponent {
     if (probability < 60) return 'Berpotensi hujan, bawa payung';
     return 'Hujan berkemungkinan besar, berhati-hati di jalan';
   }
+
+  onClearResults() {
+    this.clearResults.emit();
+  }
+
 }

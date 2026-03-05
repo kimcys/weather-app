@@ -36,7 +36,8 @@
             <!-- Location Header with cleaner design -->
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 bg-linear-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center">
+                    <div
+                        class="w-9 h-9 bg-linear-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center">
                         <span class="text-lg">📍</span>
                     </div>
                     <div>
@@ -44,7 +45,8 @@
                         <p class="text-xs text-gray-400">{{ getCurrentTime() }}</p>
                     </div>
                 </div>
-                <span class="text-[10px] px-2.5 py-1.5 bg-gray-50 text-gray-500 font-medium rounded-full border border-gray-100">
+                <span
+                    class="text-[10px] px-2.5 py-1.5 bg-gray-50 text-gray-500 font-medium rounded-full border border-gray-100">
                     Sekarang
                 </span>
             </div>
@@ -130,7 +132,8 @@
                     <span class="text-[9px] text-gray-300">{{ getNextHoursRange() }}</span>
                 </div>
                 <div class="grid grid-cols-3 gap-1.5">
-                    <div *ngFor="let hour of getNext3Hours()" class="text-center p-2.5 bg-gray-50/80 rounded-xl border border-gray-100/50">
+                    <div *ngFor="let hour of getNext3Hours()"
+                        class="text-center p-2.5 bg-gray-50/80 rounded-xl border border-gray-100/50">
                         <p class="text-[9px] text-gray-400 mb-1">{{ hour.time }}</p>
                         <span class="text-lg block my-0.5">{{ hour.icon }}</span>
                         <p class="text-xs font-medium text-gray-800">{{ hour.temp }}°</p>
@@ -235,6 +238,16 @@
                 <span class="hidden sm:inline">Pusatkan lokasi saya</span>
             </button>
 
+            <button *ngIf="showRouteHomeWork && commuterHomeLocation && commuterWorkLocation"
+                (click)="onClearMapRoutes()" class="absolute top-4 left-1/2 -translate-x-1/2 w-fit bg-white/90 backdrop-blur-sm p-2.5 rounded-xl shadow-lg z-10 
+           hover:bg-white transition-all duration-200 border border-gray-200
+           flex items-center gap-2 text-sm text-gray-700">
+                <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span class="hidden sm:inline">Kosongkan Laluan</span>
+            </button>
+
             <!-- Map Legend -->
             <app-map-legend *ngIf="!isLoading && !isWeatherLoading && forecasts.length > 0"></app-map-legend>
 
@@ -325,9 +338,10 @@
                             <p class="text-[9px] text-gray-400">Wind Speed</p>
                         </div>
                     </div>
-                    <span class="text-sm font-medium text-gray-800">{{ getCurrentWindSpeed() | number:'1.0-0' }} <span class="text-[9px] text-gray-400">km/h</span></span>
+                    <span class="text-sm font-medium text-gray-800">{{ getCurrentWindSpeed() | number:'1.0-0' }} <span
+                            class="text-[9px] text-gray-400">km/h</span></span>
                 </div>
-                
+
                 <div class="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100/50">
                     <div class="flex items-center gap-2.5">
                         <span class="text-lg">🌪️</span>
@@ -336,9 +350,10 @@
                             <p class="text-[9px] text-gray-400">Wind Gust</p>
                         </div>
                     </div>
-                    <span class="text-sm font-medium text-gray-800">{{ getCurrentWindGust() | number:'1.0-0' }} <span class="text-[9px] text-gray-400">km/h</span></span>
+                    <span class="text-sm font-medium text-gray-800">{{ getCurrentWindGust() | number:'1.0-0' }} <span
+                            class="text-[9px] text-gray-400">km/h</span></span>
                 </div>
-                
+
                 <div class="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100/50">
                     <div class="flex items-center gap-2.5">
                         <span class="text-lg">👁️</span>
@@ -347,7 +362,8 @@
                             <p class="text-[9px] text-gray-400">Visibility</p>
                         </div>
                     </div>
-                    <span class="text-sm font-medium text-gray-800">{{ getCurrentVisibility() | number:'1.0-0' }} <span class="text-[9px] text-gray-400">km</span></span>
+                    <span class="text-sm font-medium text-gray-800">{{ getCurrentVisibility() | number:'1.0-0' }} <span
+                            class="text-[9px] text-gray-400">km</span></span>
                 </div>
             </div>
 
@@ -362,7 +378,7 @@
                         <div class="h-1.5 rounded-full bg-yellow-400" style="width: 45%"></div>
                     </div>
                 </div>
-                
+
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
                         <span class="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Kelembapan</span>
@@ -372,7 +388,7 @@
                         <div class="h-1.5 rounded-full bg-blue-400" style="width: 75%"></div>
                     </div>
                 </div>
-                
+
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
                         <span class="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Tekanan</span>
@@ -389,8 +405,10 @@
                 <div class="flex items-start gap-2.5">
                     <span class="text-sm">💡</span>
                     <div>
-                        <p class="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-0.5">Tip Hari Ini</p>
-                        <p class="text-xs text-gray-700 leading-relaxed">Bawa payung, hujan dijangka turun petang ini.</p>
+                        <p class="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-0.5">Tip Hari Ini
+                        </p>
+                        <p class="text-xs text-gray-700 leading-relaxed">Bawa payung, hujan dijangka turun petang ini.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -409,7 +427,7 @@
                 <app-commute-result class="block h-full" [weekDays]="commuterWeekDays" [homeToWork]="commuterHomeToWork"
                     [workToHome]="commuterWorkToHome" [showResults]="commuterShowResults"
                     [homeLocation]="commuterHomeLocation" [workLocation]="commuterWorkLocation"
-                    (showRoute)="onCommuterShowRoute()">
+                    (showRoute)="onCommuterShowRoute()" (clearResults)="onClearCommuterResults()">
                 </app-commute-result>
             </div>
         </div>
