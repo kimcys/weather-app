@@ -16,8 +16,13 @@ export class MapService {
   private markerByTitle = new Map<string, google.maps.marker.AdvancedMarkerElement | google.maps.Marker>();
   private forecastByTitle = new Map<string, { latest: WeatherForecast; all: WeatherForecast[]; coords: { lat: number; lng: number } }>();
   private payloadByTitle = new Map<string, { coords: { lat: number; lng: number }; latest: WeatherForecast; all: WeatherForecast[] }>();
+  private isMobile = window.innerWidth < 768;
 
-  constructor(private ngZone: NgZone) { }
+  constructor(private ngZone: NgZone) {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', this.handleResize.bind(this));
+    }
+  }
 
   async initializeMap(mapElement: HTMLElement): Promise<boolean> {
     try {
@@ -114,15 +119,15 @@ export class MapService {
       // --- click handler ---
       marker.addListener('click', (e: any) => {
         if (e?.stopPropagation) e.stopPropagation();
-      
+
         this.ngZone.run(() => {
           if (!this.map) return;
-      
+
           const center = this.getMarkerLatLng(marker, coords);
           if (center) this.map.setCenter(center);
           const z = this.map.getZoom() ?? 6;
           if (z < 7) this.map.setZoom(8);
-      
+
           onMarkerClick(latestForecast, forecasts);
           this.showInfoWindow(marker, latestForecast, forecasts);
         });
@@ -290,10 +295,12 @@ export class MapService {
     allForecasts: WeatherForecast[]
   ): void {
     if (!this.infoWindow || !this.map) return;
+    if (this.isMobile) {
+      return;
+    }
 
     const content = this.createPopupContent(latest, allForecasts);
     this.infoWindow.setContent(content);
-
     this.infoWindow.open({
       map: this.map,
       anchor: marker,
@@ -325,20 +332,20 @@ export class MapService {
     const sorted = [...allForecasts].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-  
+
     const fmt = (d: string) =>
       new Date(d).toLocaleDateString('ms-MY', { weekday: 'short', day: 'numeric', month: 'short' });
-  
+
     const pill = (label: string, emoji: string) => `
       <div class="rounded-lg border border-gray-200 bg-white px-2 py-1 text-center">
         <div class="text-[10px] font-medium text-gray-500">${label}</div>
         <div class="mt-0.5 text-sm leading-none">${emoji}</div>
       </div>
     `;
-  
+
     const forecastItems = sorted.slice(0, 5).map(f => {
       const active = f.date === latest.date;
-  
+
       return `
         <div class="flex items-start justify-between gap-3 rounded-lg px-2 py-2
                     ${active ? 'bg-gray-50 ring-1 ring-gray-200' : 'hover:bg-gray-50'}">
@@ -359,7 +366,7 @@ export class MapService {
         </div>
       `;
     }).join('');
-  
+
     return `
       <div class="w-[290px] font-sans">
         <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
@@ -476,7 +483,7 @@ export class MapService {
     this.map.panTo(payload.coords);
     const currentZoom = this.map.getZoom() ?? 6;
     const targetZoom = Math.min(currentZoom + 1, 8);
-    
+
     if (targetZoom > currentZoom) {
       this.smoothZoom(this.map!, targetZoom, 70);
     }
@@ -499,19 +506,30 @@ export class MapService {
       if (!p) return fallback ?? null;
       return { lat: p.lat(), lng: p.lng() };
     }
-  
+
     // Advanced marker
     const p: any = (marker as any).position;
     if (!p) return fallback ?? null;
-  
+
     // LatLng
     if (p instanceof google.maps.LatLng) return { lat: p.lat(), lng: p.lng() };
-  
+
     // LatLngLiteral
     if (typeof p.lat === 'number' && typeof p.lng === 'number') return { lat: p.lat, lng: p.lng };
-  
+
     return fallback ?? null;
   }
+
+  private handleResize(): void {
+    this.isMobile = window.innerWidth < 768;
+  }
+
+  destroy(): void {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.handleResize.bind(this));
+    }
+  }
+
 
   clearRoutes() {
     this.directionsRenderers.forEach(renderer => renderer.setMap(null));
