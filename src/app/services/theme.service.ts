@@ -28,13 +28,11 @@ export class ThemeService {
       const savedTheme = localStorage.getItem('theme') as Theme | null;
       
       if (savedTheme) {
-        console.log('Loading saved theme:', savedTheme);
         this.setTheme(savedTheme);
       } else {
         // Check system preference
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const initialTheme = systemPrefersDark ? 'dark' : 'light';
-        console.log('Using system preference:', initialTheme);
         this.setTheme(initialTheme);
       }
       
@@ -49,7 +47,6 @@ export class ThemeService {
   
   setTheme(theme: Theme): void {
     if (isPlatformBrowser(this.platformId)) {
-      console.log('Setting theme to:', theme);
       
       // Update HTML class using Renderer2
       if (theme === 'dark') {
@@ -62,10 +59,7 @@ export class ThemeService {
       localStorage.setItem('theme', theme);
       
       // Update BehaviorSubject
-      this.currentThemeSubject.next(theme);
-      
-      // Debug: Check if class was applied
-      console.log('HTML class after update:', this.document.documentElement.classList);
+      this.currentThemeSubject.next(theme);      
     }
   }
   

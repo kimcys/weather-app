@@ -22,10 +22,8 @@
         // Determine theme
         if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
           document.documentElement.classList.add('dark');
-          console.log('Initial dark mode applied');
         } else {
           document.documentElement.classList.remove('dark');
-          console.log('Initial light mode applied');
         }
       } catch (e) {
         console.error('Theme initialization failed:', e);

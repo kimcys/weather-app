@@ -10,21 +10,16 @@ import { CommonModule } from '@angular/common';
 export class ThemeToggleComponent implements OnInit {
   isDarkMode = false;
 
-  constructor(private themeService: ThemeService) {
-    // Log to verify service is injected
-    console.log('ThemeToggleComponent initialized');
-  }
+  constructor(private themeService: ThemeService) { }
 
   ngOnInit() {
     // Subscribe to theme changes
     this.themeService.currentTheme$.subscribe(theme => {
-      console.log('Theme changed to:', theme);
       this.isDarkMode = theme === 'dark';
     });
   }
 
   toggleTheme() {
-    console.log('Toggle button clicked');
     this.themeService.toggleTheme();
   }
 }
