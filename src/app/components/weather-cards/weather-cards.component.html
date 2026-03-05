@@ -39,14 +39,14 @@
                         <div class="flex justify-between gap-2 mb-2">
                             <div
                                 class="flex-1 bg-white/80 dark:bg-gray-900/80 rounded-lg px-1 sm:px-2 py-1 text-center">
-                                <span class="text-[10px] sm:text-xs text-white dark:text-gray-400">Min</span>
+                                <span class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Min</span>
                                 <span class="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 ml-1">
                                     {{ selectedForecast.min_temp }}°
                                 </span>
                             </div>
                             <div
                                 class="flex-1 bg-white/80 dark:bg-gray-900/80 rounded-lg px-1 sm:px-2 py-1 text-center">
-                                <span class="text-[10px] sm:text-xs text-white dark:text-gray-400">Max</span>
+                                <span class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Max</span>
                                 <span class="text-xs sm:text-sm font-bold text-red-500 dark:text-red-400 ml-1">
                                     {{ selectedForecast.max_temp }}°
                                 </span>
@@ -56,26 +56,26 @@
                         <!-- Time-based Forecast - 3 columns -->
                         <div class="grid grid-cols-3 gap-1 mt-auto">
                             <div class="text-center bg-white/80 dark:bg-gray-900/80 p-1 sm:p-1.5 rounded-lg">
-                                <div class="text-[8px] sm:text-[10px] text-white dark:text-gray-400">Pagi</div>
+                                <div class="text-[8px] sm:text-[10px] text-gray-500 dark:text-gray-400">Pagi</div>
                                 <div class="text-base sm:text-lg">{{ getWeatherEmoji(selectedForecast.morning_forecast)
                                     }}</div>
-                                <div class="text-[6px] sm:text-[8px] text-white dark:text-white truncate">
+                                <div class="text-[6px] sm:text-[8px] text-gray-500 dark:text-white truncate">
                                     {{ selectedForecast.morning_forecast }}
                                 </div>
                             </div>
                             <div class="text-center bg-white/80 dark:bg-gray-900/80 p-1 sm:p-1.5 rounded-lg">
-                                <div class="text-[8px] sm:text-[10px] text-white dark:text-gray-400">Petang</div>
+                                <div class="text-[8px] sm:text-[10px] text-gray-500 dark:text-gray-400">Petang</div>
                                 <div class="text-base sm:text-lg">{{
                                     getWeatherEmoji(selectedForecast.afternoon_forecast) }}</div>
-                                <div class="text-[6px] sm:text-[8px] text-white dark:text-white truncate">
+                                <div class="text-[6px] sm:text-[8px] text-gray-500 dark:text-white truncate">
                                     {{ selectedForecast.afternoon_forecast }}
                                 </div>
                             </div>
                             <div class="text-center bg-white/80 dark:bg-gray-900/80 p-1 sm:p-1.5 rounded-lg">
-                                <div class="text-[8px] sm:text-[10px] text-white dark:text-gray-400">Malam</div>
+                                <div class="text-[8px] sm:text-[10px] text-gray-500 dark:text-gray-400">Malam</div>
                                 <div class="text-base sm:text-lg">{{ getWeatherEmoji(selectedForecast.night_forecast) }}
                                 </div>
-                                <div class="text-[6px] sm:text-[8px] text-white dark:text-white truncate">
+                                <div class="text-[6px] sm:text-[8px] text-gray-500 dark:text-white truncate">
                                     {{ selectedForecast.night_forecast }}
                                 </div>
                             </div>

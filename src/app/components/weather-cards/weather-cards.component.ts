@@ -8,10 +8,13 @@ import {
   AfterViewInit,
   OnDestroy,
   NgZone,
-  OnInit
+  OnInit,
+  Inject,
+  PLATFORM_ID
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { isPlatformBrowser } from '@angular/common';
 import { WeatherForecast } from '../../model/forecast.model';
 import { WeatherUtils } from '../../utils/weather-utils';
 
@@ -45,28 +48,59 @@ export class WeatherCardsComponent implements AfterViewInit, OnDestroy, OnInit {
   otherLocations: string[] = [];
 
   private scrollInterval: any;
-  private readonly SCROLL_SPEED = 2.0;
+  private readonly SCROLL_SPEED = 1.5; // Slightly slower for smoother scroll
   private isAutoScrolling = true;
   private userInteracted = false;
   private interactionTimeout: any;
-  private readonly INTERACTION_TIMEOUT = 1000;
+  private readonly INTERACTION_TIMEOUT = 2000; // Longer timeout on mobile
+  private isMobile = false;
+  private isBrowser = false;
+  private scrollAnimationFrame: any;
+  private lastScrollPosition = 0;
+  private isTouching = false;
 
-
-  constructor(private ngZone: NgZone) {}
+  constructor(
+    private ngZone: NgZone,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit() {
     this.updateOtherLocations();
+    this.checkMobile();
+    
+    if (this.isBrowser) {
+      window.addEventListener('resize', this.checkMobile.bind(this));
+    }
   }
 
   ngAfterViewInit() {
-    this.startAutoScroll();
-    this.checkScrollButtons();
+    if (!this.isBrowser) return;
+    
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+      this.checkScrollButtons();
+      this.startAutoScroll();
+    }, 100);
     
     // Add event listeners for user interaction
-    const container = this.scrollContainer.nativeElement;
-    container.addEventListener('wheel', () => this.handleUserInteraction());
-    container.addEventListener('touchstart', () => this.handleUserInteraction());
-    container.addEventListener('mousedown', () => this.handleUserInteraction());
+    const container = this.scrollContainer?.nativeElement;
+    if (container) {
+      // Mouse events (desktop)
+      container.addEventListener('wheel', () => this.handleUserInteraction(), { passive: true });
+      container.addEventListener('mousedown', () => this.handleUserInteraction());
+      container.addEventListener('mouseenter', () => this.handleUserInteraction());
+      
+      // Touch events (mobile)
+      container.addEventListener('touchstart', () => this.handleTouchStart(), { passive: true });
+      container.addEventListener('touchmove', () => this.handleTouchMove(), { passive: true });
+      container.addEventListener('touchend', () => this.handleTouchEnd());
+      container.addEventListener('touchcancel', () => this.handleTouchEnd());
+      
+      // Scroll event
+      container.addEventListener('scroll', () => this.onScroll(), { passive: true });
+    }
   }
 
   ngOnDestroy() {
@@ -74,9 +108,38 @@ export class WeatherCardsComponent implements AfterViewInit, OnDestroy, OnInit {
     if (this.interactionTimeout) {
       clearTimeout(this.interactionTimeout);
     }
+    if (this.scrollAnimationFrame) {
+      cancelAnimationFrame(this.scrollAnimationFrame);
+    }
+    
+    if (this.isBrowser) {
+      window.removeEventListener('resize', this.checkMobile.bind(this));
+    }
+  }
+
+  private checkMobile(): void {
+    if (!this.isBrowser) return;
+    this.isMobile = window.innerWidth < 768; // Match md breakpoint
+  }
+
+  private handleTouchStart(): void {
+    this.isTouching = true;
+    this.handleUserInteraction();
+  }
+
+  private handleTouchMove(): void {
+    this.isTouching = true;
+    this.handleUserInteraction();
+  }
+
+  private handleTouchEnd(): void {
+    this.isTouching = false;
+    // Don't immediately resume auto-scroll, wait for timeout
   }
 
   private handleUserInteraction() {
+    if (this.isMobile) return; // Don't do anything on mobile
+    
     this.userInteracted = true;
     this.isAutoScrolling = false;
     
@@ -149,26 +212,26 @@ export class WeatherCardsComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   scrollLeft() {
-    this.handleUserInteraction(); // Pause auto-scroll
+    if (!this.scrollContainer) return;
+    this.handleUserInteraction();
     
     const container = this.scrollContainer.nativeElement;
-    const cardWidth = 240; 
+    const cardWidth = this.getCardWidth();
     
-    // Use scrollBy with smooth behavior
     container.scrollBy({
       left: -cardWidth,
       behavior: 'smooth'
     });
     
-    // Update button states after animation
     setTimeout(() => this.checkScrollButtons(), 300);
   }
 
   scrollRight() {
-    this.handleUserInteraction(); // Pause auto-scroll
+    if (!this.scrollContainer) return;
+    this.handleUserInteraction();
     
     const container = this.scrollContainer.nativeElement;
-    const cardWidth = 240; // 224px width + 16px gap
+    const cardWidth = this.getCardWidth();
     
     container.scrollBy({
       left: cardWidth,
@@ -178,74 +241,130 @@ export class WeatherCardsComponent implements AfterViewInit, OnDestroy, OnInit {
     setTimeout(() => this.checkScrollButtons(), 300);
   }
 
-  onScroll() {
-    this.checkScrollButtons();
-    this.handleInfiniteLoop();
+  private getCardWidth(): number {
+    if (!this.isBrowser) return 200;
+    
+    // Different card widths based on screen size
+    if (window.innerWidth < 640) return 176; // w-44 = 176px
+    if (window.innerWidth < 768) return 192; // sm:w-48 = 192px
+    return 224; // md:w-56 = 224px
   }
 
-  private checkScrollButtons() {
-    if (this.scrollContainer) {
-      const container = this.scrollContainer.nativeElement;
-      const tolerance = 5; // Small tolerance for rounding errors
+  onScroll() {
+    if (!this.scrollContainer) return;
+    
+    const container = this.scrollContainer.nativeElement;
+    const currentScroll = container.scrollLeft;
+    
+    // Only trigger if scroll position actually changed (debounce)
+    if (Math.abs(currentScroll - this.lastScrollPosition) > 5) {
+      this.lastScrollPosition = currentScroll;
+      this.checkScrollButtons();
+      this.handleInfiniteLoop();
       
-      this.canScrollLeft = container.scrollLeft > tolerance;
-      this.canScrollRight = container.scrollLeft < container.scrollWidth - container.clientWidth - tolerance;
+      // On mobile, user is interacting
+      if (this.isMobile && this.isTouching) {
+        this.handleUserInteraction();
+      }
     }
   }
 
+  private checkScrollButtons() {
+    if (!this.scrollContainer) return;
+    
+    const container = this.scrollContainer.nativeElement;
+    const tolerance = 5;
+    
+    this.canScrollLeft = container.scrollLeft > tolerance;
+    this.canScrollRight = container.scrollLeft < container.scrollWidth - container.clientWidth - tolerance;
+  }
+
   private handleInfiniteLoop() {
+    if (!this.scrollContainer) return;
+    
     const container = this.scrollContainer.nativeElement;
     const halfScrollWidth = container.scrollWidth / 2;
 
     // If scrolled past the first set, jump back to the beginning
     if (container.scrollLeft >= halfScrollWidth && halfScrollWidth > 0) {
       container.scrollLeft = 0;
+      this.lastScrollPosition = 0;
     }
     // If scrolled before the first set, jump to the second set
     else if (container.scrollLeft < 0) {
       container.scrollLeft = halfScrollWidth - container.clientWidth;
+      this.lastScrollPosition = container.scrollLeft;
     }
   }
 
   // Auto-scroll methods
   private startAutoScroll() {
+    if (!this.isBrowser || !this.scrollContainer) return;
+    
+    // Don't auto-scroll on mobile
+    if (this.isMobile) {
+      console.log('Auto-scroll disabled on mobile');
+      return;
+    }
+    
     this.ngZone.runOutsideAngular(() => {
-      this.scrollInterval = setInterval(() => {
-        this.ngZone.run(() => {
-          // Only auto-scroll if user hasn't interacted recently
-          if (this.scrollContainer && !this.userInteracted && this.isAutoScrolling && this.canScrollRight) {
-            const container = this.scrollContainer.nativeElement;
-            const maxScroll = container.scrollWidth - container.clientWidth;
-            
-            if (container.scrollLeft >= maxScroll - 10) {
-              // Instantly jump to start for infinite effect (no smooth)
-              container.scrollLeft = 0;
-            } else {
-              // Use requestAnimationFrame for smoother animation
-              requestAnimationFrame(() => {
+      const scrollStep = () => {
+        if (!this.scrollContainer) return;
+        
+        this.scrollAnimationFrame = requestAnimationFrame(() => {
+          this.ngZone.run(() => {
+            // Only auto-scroll if conditions are met
+            if (this.scrollContainer && 
+                !this.userInteracted && 
+                this.isAutoScrolling && 
+                this.canScrollRight && 
+                !this.isMobile) {
+              
+              const container = this.scrollContainer.nativeElement;
+              const maxScroll = container.scrollWidth - container.clientWidth;
+              
+              if (container.scrollLeft >= maxScroll - 20) {
+                // Instantly jump to start for infinite effect
+                container.scrollLeft = 0;
+                this.lastScrollPosition = 0;
+              } else {
+                // Increment scroll position
                 container.scrollLeft += this.SCROLL_SPEED;
-              });
+                this.lastScrollPosition = container.scrollLeft;
+              }
+              
+              this.checkScrollButtons();
             }
-            this.checkScrollButtons();
+          });
+          
+          // Continue the animation loop
+          if (!this.isMobile) {
+            scrollStep();
           }
         });
-      }, 16); // ~60fps (16ms per frame)
+      };
+      
+      // Start the animation loop
+      scrollStep();
     });
   }
 
   private stopAutoScroll() {
-    if (this.scrollInterval) {
-      clearInterval(this.scrollInterval);
+    if (this.scrollAnimationFrame) {
+      cancelAnimationFrame(this.scrollAnimationFrame);
+      this.scrollAnimationFrame = null;
     }
   }
 
-  // Public method to manually pause auto-scroll (can be called from template)
+  // Public methods
   pauseAutoScroll() {
+    if (this.isMobile) return;
     this.userInteracted = true;
     this.isAutoScrolling = false;
   }
 
   resumeAutoScroll() {
+    if (this.isMobile) return;
     this.userInteracted = false;
     this.isAutoScrolling = true;
   }
