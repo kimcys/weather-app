@@ -80,7 +80,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
 
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.todayLabel = new Date().toLocaleDateString('ms-MY', {
       day: 'numeric',
       month: 'long',
@@ -90,6 +90,12 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
     this.checkGoogleMapsLoaded();
     this.findCurrentHourIndex();
     this.fetchCurrentLocationWeather();
+    try {
+      await this.waitForGoogleMaps();
+    } catch (e) {
+      console.warn('Google Maps not ready yet. Will skip reverse geocode.', e);
+    }
+
   }
 
   ngAfterViewInit(): void {
@@ -130,6 +136,18 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
       this.locationsLoading = false;
       this.loadWeatherData();
     }
+  }
+
+  private waitForGoogleMaps(timeoutMs = 15000): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      const tick = () => {
+        if ((window as any).google?.maps) return resolve();
+        if (Date.now() - start > timeoutMs) return reject(new Error('Google Maps not loaded'));
+        setTimeout(tick, 100);
+      };
+      tick();
+    });
   }
 
   private loadWeatherData(): void {
@@ -577,18 +595,21 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
+          if ((window as any).google?.maps?.Geocoder) {
 
-          // Reverse geocode to get location name
-          const geocoder = new google.maps.Geocoder();
-          geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
-            if (status === 'OK' && results?.length) {
-              const best = results.find(r => !this.isPlusCode((r.formatted_address ?? '').split(',')[0].trim())) ?? results[0];
-              this.currentLocationName = this.pickBestLocationName(best);
-            } else {
-              this.currentLocationName = 'Lokasi Semasa';
-            }
-          });
-
+            // Reverse geocode to get location name
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
+              if (status === 'OK' && results?.length) {
+                const best = results.find(r => !this.isPlusCode((r.formatted_address ?? '').split(',')[0].trim())) ?? results[0];
+                this.currentLocationName = this.pickBestLocationName(best);
+              } else {
+                this.currentLocationName = 'Lokasi Semasa';
+              }
+            });
+          } else {
+            this.currentLocationName = 'Lokasi Semasa';
+          }
           // Fetch weather data
           const weather = await firstValueFrom(
             this.motorcycleService.getHourlyForecast(latitude, longitude)
