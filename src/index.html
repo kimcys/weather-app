@@ -10,6 +10,28 @@
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcuWqnMBSgVPu7X2U6K-EnAGNcaBFCQjs&region=MY&libraries=geometry,drawing,visualization,places,marker&v=weekly&loading=async"
     async defer></script>
+  <script>
+    (function () {
+      try {
+        // Check localStorage
+        const savedTheme = localStorage.getItem('theme');
+
+        // Check system preference
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        // Determine theme
+        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+          document.documentElement.classList.add('dark');
+          console.log('Initial dark mode applied');
+        } else {
+          document.documentElement.classList.remove('dark');
+          console.log('Initial light mode applied');
+        }
+      } catch (e) {
+        console.error('Theme initialization failed:', e);
+      }
+    })();
+  </script>
 </head>
 
 <body>
