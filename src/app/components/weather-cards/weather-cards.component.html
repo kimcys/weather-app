@@ -29,7 +29,7 @@
                                 <h4 class="font-bold text-gray-800 dark:text-white truncate text-sm sm:text-base">
                                     {{ selectedForecast.location.location_name }}
                                 </h4>
-                                <p class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 truncate">
+                                <p class="text-[10px] sm:text-xs text-white dark:text-gray-400 truncate">
                                     {{ selectedForecast.date | date:'EEEE, dd MMM' }}
                                 </p>
                             </div>
@@ -39,14 +39,14 @@
                         <div class="flex justify-between gap-2 mb-2">
                             <div
                                 class="flex-1 bg-white/80 dark:bg-gray-900/80 rounded-lg px-1 sm:px-2 py-1 text-center">
-                                <span class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Min</span>
+                                <span class="text-[10px] sm:text-xs text-white dark:text-gray-400">Min</span>
                                 <span class="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 ml-1">
                                     {{ selectedForecast.min_temp }}°
                                 </span>
                             </div>
                             <div
                                 class="flex-1 bg-white/80 dark:bg-gray-900/80 rounded-lg px-1 sm:px-2 py-1 text-center">
-                                <span class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Max</span>
+                                <span class="text-[10px] sm:text-xs text-white dark:text-gray-400">Max</span>
                                 <span class="text-xs sm:text-sm font-bold text-red-500 dark:text-red-400 ml-1">
                                     {{ selectedForecast.max_temp }}°
                                 </span>
@@ -56,26 +56,26 @@
                         <!-- Time-based Forecast - 3 columns -->
                         <div class="grid grid-cols-3 gap-1 mt-auto">
                             <div class="text-center bg-white/80 dark:bg-gray-900/80 p-1 sm:p-1.5 rounded-lg">
-                                <div class="text-[8px] sm:text-[10px] text-gray-500 dark:text-gray-400">Pagi</div>
+                                <div class="text-[8px] sm:text-[10px] text-white dark:text-gray-400">Pagi</div>
                                 <div class="text-base sm:text-lg">{{ getWeatherEmoji(selectedForecast.morning_forecast)
                                     }}</div>
-                                <div class="text-[6px] sm:text-[8px] text-gray-500 dark:text-gray-500 truncate">
+                                <div class="text-[6px] sm:text-[8px] text-white dark:text-white truncate">
                                     {{ selectedForecast.morning_forecast }}
                                 </div>
                             </div>
                             <div class="text-center bg-white/80 dark:bg-gray-900/80 p-1 sm:p-1.5 rounded-lg">
-                                <div class="text-[8px] sm:text-[10px] text-gray-500 dark:text-gray-400">Petang</div>
+                                <div class="text-[8px] sm:text-[10px] text-white dark:text-gray-400">Petang</div>
                                 <div class="text-base sm:text-lg">{{
                                     getWeatherEmoji(selectedForecast.afternoon_forecast) }}</div>
-                                <div class="text-[6px] sm:text-[8px] text-gray-500 dark:text-gray-500 truncate">
+                                <div class="text-[6px] sm:text-[8px] text-white dark:text-white truncate">
                                     {{ selectedForecast.afternoon_forecast }}
                                 </div>
                             </div>
                             <div class="text-center bg-white/80 dark:bg-gray-900/80 p-1 sm:p-1.5 rounded-lg">
-                                <div class="text-[8px] sm:text-[10px] text-gray-500 dark:text-gray-400">Malam</div>
+                                <div class="text-[8px] sm:text-[10px] text-white dark:text-gray-400">Malam</div>
                                 <div class="text-base sm:text-lg">{{ getWeatherEmoji(selectedForecast.night_forecast) }}
                                 </div>
-                                <div class="text-[6px] sm:text-[8px] text-gray-500 dark:text-gray-500 truncate">
+                                <div class="text-[6px] sm:text-[8px] text-white dark:text-white truncate">
                                     {{ selectedForecast.night_forecast }}
                                 </div>
                             </div>
@@ -91,7 +91,7 @@
                     <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-1 text-sm sm:text-base">
                         Tiada Lokasi Dipilih
                     </h4>
-                    <p class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                    <p class="text-[10px] sm:text-xs text-white dark:text-gray-400">
                         Klik pada mana-mana lokasi untuk melihat ramalan terperinci
                     </p>
                     <div class="mt-2 sm:mt-3 text-blue-500 dark:text-blue-400 animate-pulse">
@@ -111,7 +111,7 @@
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                         Senarai Lokasi Lain
-                        <span class="ml-1 sm:ml-2 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                        <span class="ml-1 sm:ml-2 text-[10px] sm:text-xs text-white dark:text-gray-400">
                             ({{ getOtherLocations().length }})
                         </span>
                     </h3>
@@ -194,7 +194,7 @@
                                     <!-- Temperature -->
                                     <div class="flex items-center justify-between text-[10px] sm:text-xs 
                                                 mt-auto pt-1 border-t border-gray-100 dark:border-gray-800">
-                                        <span class="text-gray-500 dark:text-gray-400">🌡️</span>
+                                        <span class="text-white dark:text-gray-400">🌡️</span>
                                         <span class="font-medium text-gray-700 dark:text-gray-200">
                                             {{ getLatestForecastTemp(location) }}
                                         </span>
@@ -229,7 +229,7 @@
                                     </p>
                                     <div class="flex items-center justify-between text-[10px] sm:text-xs 
                                                 mt-auto pt-1 border-t border-gray-100 dark:border-gray-800">
-                                        <span class="text-gray-500 dark:text-gray-400">🌡️</span>
+                                        <span class="text-white dark:text-gray-400">🌡️</span>
                                         <span class="font-medium text-gray-700 dark:text-gray-200">
                                             {{ getLatestForecastTemp(location) }}
                                         </span>
@@ -241,7 +241,7 @@
                         <!-- Empty state -->
                         <div *ngIf="getOtherLocations().length === 0"
                             class="flex items-center justify-center w-full h-full min-h-32 sm:min-h-40">
-                            <p class="text-xs sm:text-sm text-gray-400 dark:text-gray-500">
+                            <p class="text-xs sm:text-sm text-gray-400 dark:text-white">
                                 Tiada lokasi lain
                             </p>
                         </div>

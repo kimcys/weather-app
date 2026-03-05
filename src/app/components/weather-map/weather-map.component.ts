@@ -76,9 +76,9 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
   ) {
     this.themeService.currentTheme$.subscribe(theme => {
       this.isDarkMode = theme === 'dark';
-  });
+    });
 
-   }
+  }
 
   ngOnInit(): void {
     this.todayLabel = new Date().toLocaleDateString('ms-MY', {
@@ -731,6 +731,19 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
     return `${startHour}:00 - ${startHour + 3}:00`;
   }
 
+  getHourLabel(index: number): string {
+    switch (index) {
+      case 0:
+        return 'Sekarang';
+      case 1:
+        return '+1 jam';
+      case 2:
+        return '+2 jam';
+      default:
+        return '';
+    }
+  }
+
   getNext3Hours(): Array<{ time: string; icon: string; temp: number; rain: number }> {
     if (!this.currentLocationWeather) return [];
 
@@ -795,6 +808,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
 
   onClearMapRoutes(): void {
     if (this.mapService.getMap()) {
+      this.showRouteHomeWork = false;
       this.mapService.clearRoutes();
     }
   }
