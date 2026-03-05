@@ -114,16 +114,15 @@ export class MapService {
       // --- click handler ---
       marker.addListener('click', (e: any) => {
         if (e?.stopPropagation) e.stopPropagation();
-
+      
         this.ngZone.run(() => {
           if (!this.map) return;
-
-          this.map.panTo(coords);
-
-          const currentZoom = this.map.getZoom() ?? 6;
-          const targetZoom = currentZoom < 10 ? 10 : currentZoom;
-          this.smoothZoom(this.map!, Math.min(targetZoom, 12), 70);
-
+      
+          const center = this.getMarkerLatLng(marker, coords);
+          if (center) this.map.setCenter(center);
+          const z = this.map.getZoom() ?? 6;
+          if (z < 7) this.map.setZoom(8);
+      
           onMarkerClick(latestForecast, forecasts);
           this.showInfoWindow(marker, latestForecast, forecasts);
         });
@@ -323,65 +322,100 @@ export class MapService {
   }
 
   private createPopupContent(latest: WeatherForecast, allForecasts: WeatherForecast[]): string {
-    const sortedForecasts = [...allForecasts].sort((a, b) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime()
+    const sorted = [...allForecasts].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-
-    const forecastItems = sortedForecasts.slice(0, 5).map(f => `
-      <div class="popup-forecast-item ${f.date === latest.date ? 'popup-latest' : ''}">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: ${f.date === latest.date ? 'bold' : 'normal'};">
-            ${new Date(f.date).toLocaleDateString('ms-MY', { weekday: 'short', day: 'numeric', month: 'short' })}
-          </span>
-          <span style="display: flex; align-items: center; gap: 4px;">
-            ${WeatherUtils.getWeatherEmoji(f.summary_forecast)}
-            <span>${f.min_temp}°/${f.max_temp}°</span>
-          </span>
-        </div>
-        <div style="font-size: 11px; color: #666; margin-top: 2px;">
-          ${f.summary_forecast} (${f.summary_when})
-        </div>
+  
+    const fmt = (d: string) =>
+      new Date(d).toLocaleDateString('ms-MY', { weekday: 'short', day: 'numeric', month: 'short' });
+  
+    const pill = (label: string, emoji: string) => `
+      <div class="rounded-lg border border-gray-200 bg-white px-2 py-1 text-center">
+        <div class="text-[10px] font-medium text-gray-500">${label}</div>
+        <div class="mt-0.5 text-sm leading-none">${emoji}</div>
       </div>
-    `).join('');
-
+    `;
+  
+    const forecastItems = sorted.slice(0, 5).map(f => {
+      const active = f.date === latest.date;
+  
+      return `
+        <div class="flex items-start justify-between gap-3 rounded-lg px-2 py-2
+                    ${active ? 'bg-gray-50 ring-1 ring-gray-200' : 'hover:bg-gray-50'}">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-gray-900">${fmt(f.date)}</span>
+              ${active ? `<span class="text-[10px] font-semibold text-gray-500">Terkini</span>` : ``}
+            </div>
+            <div class="mt-0.5 truncate text-[11px] text-gray-600">
+              ${f.summary_forecast} <span class="text-gray-400">•</span> ${f.summary_when}
+            </div>
+          </div>
+  
+          <div class="flex shrink-0 items-center gap-2 text-xs text-gray-700">
+            <span class="text-sm leading-none">${WeatherUtils.getWeatherEmoji(f.summary_forecast)}</span>
+            <span class="font-medium">${f.min_temp}°/${f.max_temp}°</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  
     return `
-      <div class="google-popup">
-        <div style="padding: 12px;">
-          <h3 style="margin: 0 0 8px 0; color: #1e40af; font-size: 16px; font-weight: bold; border-bottom: 2px solid #e5e7eb; padding-bottom: 4px;">
-            ${latest.location.location_name}
-          </h3>
-          
-          <div style="background: #f3f4f6; padding: 8px; border-radius: 6px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-              <span style="font-size: 24px;">${WeatherUtils.getWeatherEmoji(latest.summary_forecast)}</span>
-              <span style="font-weight: bold; font-size: 16px;">${latest.summary_forecast}</span>
+      <div class="w-[290px] font-sans">
+        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+          <!-- Header -->
+          <div class="px-4 pt-4 pb-3">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h3 class="truncate text-sm font-semibold text-gray-900">
+                  ${latest.location.location_name}
+                </h3>
+  
+                <div class="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                  <span>${fmt(latest.date)}</span>
+                  <span class="text-gray-300">•</span>
+                  <span>${latest.summary_when}</span>
+                </div>
+              </div>
+  
+              <div class="shrink-0 text-lg leading-none">
+                ${WeatherUtils.getWeatherEmoji(latest.summary_forecast)}
+              </div>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 13px;">
-              <span>🌡️ ${latest.min_temp}°C - ${latest.max_temp}°C</span>
-              <span>⏰ ${latest.summary_when}</span>
+  
+            <!-- Summary (minimal) -->
+            <div class="mt-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+              <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <div class="truncate text-xs font-semibold text-gray-900">
+                    ${latest.summary_forecast}
+                  </div>
+                  <div class="mt-0.5 text-[11px] text-gray-600">
+                    🌡️ ${latest.min_temp}°C – ${latest.max_temp}°C
+                  </div>
+                </div>
+  
+                <div class="shrink-0 text-right text-[11px] text-gray-500">
+                  ⏰ ${latest.summary_when}
+                </div>
+              </div>
+            </div>
+  
+            <!-- Day parts -->
+            <div class="mt-3 grid grid-cols-3 gap-2">
+              ${pill('Pagi', WeatherUtils.getWeatherEmoji(latest.morning_forecast))}
+              ${pill('Petang', WeatherUtils.getWeatherEmoji(latest.afternoon_forecast))}
+              ${pill('Malam', WeatherUtils.getWeatherEmoji(latest.night_forecast))}
             </div>
           </div>
-
-          <div style="margin: 8px 0;">
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; text-align: center; font-size: 12px;">
-              <div style="background: #dbeafe; padding: 4px; border-radius: 4px;">
-                <div>🌅 Pagi</div>
-                <div>${WeatherUtils.getWeatherEmoji(latest.morning_forecast)}</div>
-              </div>
-              <div style="background: #fef3c7; padding: 4px; border-radius: 4px;">
-                <div>☀️ Petang</div>
-                <div>${WeatherUtils.getWeatherEmoji(latest.afternoon_forecast)}</div>
-              </div>
-              <div style="background: #e0e7ff; padding: 4px; border-radius: 4px;">
-                <div>🌙 Malam</div>
-                <div>${WeatherUtils.getWeatherEmoji(latest.night_forecast)}</div>
-              </div>
+  
+          <!-- 5-day list -->
+          <div class="border-t border-gray-200 px-4 py-3">
+            <div class="mb-2 text-[11px] font-semibold tracking-wide text-gray-500">
+              5-Hari Ramalan
             </div>
-          </div>
-
-          <div style="margin-top: 12px;">
-            <div style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">5-Hari Ramalan:</div>
-            <div style="max-height: 150px; overflow-y: auto;">
+  
+            <div class="max-h-[160px] space-y-1 overflow-y-auto pr-1">
               ${forecastItems}
             </div>
           </div>
@@ -435,15 +469,17 @@ export class MapService {
 
     const key = this.normKey(locationName);
     const marker = this.markerByTitle.get(key);
-    const payload = this.forecastByTitle.get(key);
-
+    const payload = this.payloadByTitle.get(key);
     if (!payload) return false;
 
     // 1) Pan + zoom
     this.map.panTo(payload.coords);
     const currentZoom = this.map.getZoom() ?? 6;
-    const targetZoom = currentZoom < 10 ? 10 : currentZoom;
-    this.smoothZoom(this.map, Math.min(targetZoom, 12), 70); // keep within maxZoom
+    const targetZoom = Math.min(currentZoom + 1, 8);
+    
+    if (targetZoom > currentZoom) {
+      this.smoothZoom(this.map!, targetZoom, 70);
+    }
 
     // 2) Open same info window as marker click
     if (marker) {
@@ -451,6 +487,30 @@ export class MapService {
     }
 
     return true;
+  }
+
+  private getMarkerLatLng(
+    marker: google.maps.marker.AdvancedMarkerElement | google.maps.Marker,
+    fallback?: { lat: number; lng: number }
+  ): google.maps.LatLngLiteral | null {
+    // Classic marker
+    if (marker instanceof google.maps.Marker) {
+      const p = marker.getPosition();
+      if (!p) return fallback ?? null;
+      return { lat: p.lat(), lng: p.lng() };
+    }
+  
+    // Advanced marker
+    const p: any = (marker as any).position;
+    if (!p) return fallback ?? null;
+  
+    // LatLng
+    if (p instanceof google.maps.LatLng) return { lat: p.lat(), lng: p.lng() };
+  
+    // LatLngLiteral
+    if (typeof p.lat === 'number' && typeof p.lng === 'number') return { lat: p.lat, lng: p.lng };
+  
+    return fallback ?? null;
   }
 
   clearRoutes() {

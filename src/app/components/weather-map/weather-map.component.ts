@@ -301,32 +301,38 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
     );
     if (forecasts.length === 0) return;
     this.selectedForecast = WeatherUtils.getLatestForecast(forecasts);
-  
-    const map = this.mapService.getMap();
-    if (!map) return;
-  
-    const coords = this.locationMatcher.findCoordinates(location);  
-    if (coords) {
-      map.panTo(coords);
-      map.setZoom(9);
+    const ok = this.mapService.focusLocation(location);
+    if (ok) {
       this.scrollToMap();
       return;
     }
-  
-    const geocoder = new google.maps.Geocoder();  
+
+    const map = this.mapService.getMap();
+    if (!map) return;
+
+    const coords = this.locationMatcher.findCoordinates(location);
+    if (coords) {
+      map.panTo(coords);
+      const z = map.getZoom() ?? 6;
+      if (z < 7) map.setZoom(8);
+      this.scrollToMap();
+      return;
+    }
+
+    const geocoder = new google.maps.Geocoder();
     geocoder.geocode(
       { address: `${location}, Malaysia` },
       (results, status) => {
         if (status === 'OK' && results?.[0]) {
           const pos = results[0].geometry.location;
-  
+
           const latLng = {
             lat: pos.lat(),
             lng: pos.lng()
-          };  
+          };
           map.panTo(latLng);
           map.setZoom(9);
-  
+
         } else {
           console.error(
             `Geocode failed for "${location}"`,
@@ -335,7 +341,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
         }
       }
     );
-  
+
     this.scrollToMap();
   }
 
