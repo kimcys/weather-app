@@ -34,18 +34,16 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   todayLabel = '';
   mapError = false;
 
-  // Enhanced loading states
+  commuterLoadingMessage = '';
+  locationsLoading = false;
+  locationsError: string | null = null;
   isLoading = true;
-  isWeatherLoading = false;
+  isWeatherLoading = true;
   locationsLoaded = false;
   weatherLoaded = false;
   mapLoaded = false;
-  isCommuterLoading = false;
-  commuterLoadingMessage = '';
   locationsCount = 0;
   loadingMessage = 'Memulakan...';
-  locationsLoading = false;
-  locationsError: string | null = null;
 
   selectedLocationType: string = 'Ds';
   locationTypes = [
@@ -366,10 +364,6 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     workToHome: JourneyTime;
     weekDays: any[];
   }) {
-    // Show loading
-    this.isCommuterLoading = true;
-    this.commuterLoadingMessage = 'Mendapatkan data ramalan cuaca...';
-    
     this.commuterHomeLocation = event.homeLocation;
     this.commuterWorkLocation = event.workLocation;
     this.commuterHomeToWork = event.homeToWork;
@@ -382,8 +376,6 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     }));
 
     await this.calculateCommuterRainProbability();
-    // Hide loading
-    this.isCommuterLoading = false;
     this.commuterShowResults = true;
   }
 
@@ -404,7 +396,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
       ));
 
       this.commuterLoadingMessage = 'Mengira kebarangkalian hujan...';
-      
+
       this.commuterWeekDays.forEach(day => {
         if (day.isWorking) {
           const date = this.getDateWithinWeek(day.day);
@@ -439,7 +431,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     return '50%';
   }
 
-  
+
   private calculateJourneyRainProbability(
     startHourly: HourlyWeather,
     endHourly: HourlyWeather,

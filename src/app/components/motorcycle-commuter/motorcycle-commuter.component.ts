@@ -1,10 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { WeatherForecast } from '../../model/forecast.model';
-import { CommuterSchedule, HourlyWeather, JourneyTime, MapLocation } from '../../model/motorcycle.model';
-import { firstValueFrom } from 'rxjs';
-import { MotorcycleCommuterService } from '../../services/motorcycle-commuter.service';
+import { JourneyTime, MapLocation } from '../../model/motorcycle.model';
 
 declare var google: any;
 
@@ -72,7 +69,7 @@ export class MotorcycleCommuterComponent {
     if (typeof google !== 'undefined' && google.maps) {
       // Home location autocomplete
       this.homeAutocomplete = new google.maps.places.Autocomplete(this.homeSearchInput.nativeElement, {
-        types: ['geocode'],
+        types: ['establishment'],
         componentRestrictions: { country: 'my' }
       });
 
@@ -92,7 +89,7 @@ export class MotorcycleCommuterComponent {
 
       // Work location autocomplete
       this.workAutocomplete = new google.maps.places.Autocomplete(this.workSearchInput.nativeElement, {
-        types: ['geocode'],
+        types: ['establishment'],
         componentRestrictions: { country: 'my' }
       });
 
@@ -144,6 +141,11 @@ export class MotorcycleCommuterComponent {
       this.selectedHomeLocation.address !== this.selectedWorkLocation.address &&
       this.weekDays.some(day => day.isWorking);
   }
+
+  getWorkingDaysCount(): number {
+    return this.weekDays.filter(day => day.isWorking).length;
+  }
+
 
   onCalculate() {
     if (this.selectedHomeLocation && this.selectedWorkLocation) {

@@ -75,4 +75,26 @@ export class CommuteResultComponent {
   onShowRoute() {
     this.showRoute.emit();
   }
+  
+  getDailyAverageRain(day: any): number {
+    return Math.round((day.rainProbability.homeToWork + day.rainProbability.workToHome) / 2);
+  }
+
+  getRainTextClass(probability: number): string {
+    if (probability < 30) return 'text-xs font-medium text-green-600';
+    if (probability < 60) return 'text-xs font-medium text-yellow-600';
+    return 'text-xs font-medium text-red-600';
+  }
+
+  getRainGradientClass(probability: number): string {
+    if (probability < 30) return 'bg-gradient-to-r from-green-400 to-green-500';
+    if (probability < 60) return 'bg-gradient-to-r from-yellow-400 to-yellow-500';
+    return 'bg-gradient-to-r from-red-400 to-red-500';
+  }
+
+  getJourneyStatus(probability: number): string {
+    if (probability < 30) return 'Risiko hujan rendah, perjalanan lancar';
+    if (probability < 60) return 'Berpotensi hujan, bawa payung';
+    return 'Hujan berkemungkinan besar, berhati-hati di jalan';
+  }
 }

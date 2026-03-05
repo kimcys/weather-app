@@ -11,7 +11,7 @@ export class MotorcycleCommuterService {
   constructor(private http: HttpClient) { }
 
   getHourlyForecast(lat: number, lng: number): Observable<HourlyWeather> {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=precipitation_probability,temperature_2m&timezone=Asia/Kuala_Lumpur&forecast_days=7`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=precipitation_probability,precipitation,rain,temperature_2m,apparent_temperature,windspeed_10m,windgusts_10m,visibility,weathercode&timezone=Asia/Kuala_Lumpur&forecast_days=7`;
     console.log(`Fetching forecast for lat: ${lat}, lng: ${lng}`);
     return this.http.get<WeatherApiResponse>(url).pipe(
       map(response => {
