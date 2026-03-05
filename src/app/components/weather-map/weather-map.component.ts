@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MapLegendComponent } from '../map-legend/map-legend.component';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
@@ -21,7 +21,7 @@ import { MotorcycleCommuterService } from '../../services/motorcycle-commuter.se
   templateUrl: './weather-map.component.html',
   styleUrl: './weather-map.component.css'
 })
-export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
+export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
 
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef;
 
@@ -56,6 +56,11 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
   commuterShowResults = false;
   commuterHomeLocation: MapLocation | null = null;
   commuterWorkLocation: MapLocation | null = null;
+  currentLocationWeather: HourlyWeather | null = null;
+  currentLocationName: string = '';
+  currentWeatherLoading = false;
+  currentHourIndex: number = 0;
+  currentWeatherError: string | null = null;
 
   constructor(
     private weatherService: WeatherService,
@@ -73,11 +78,19 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     this.loadLocations();
     this.checkGoogleMapsLoaded();
+    this.findCurrentHourIndex();
+    this.fetchCurrentLocationWeather();
   }
 
   ngAfterViewInit(): void {
     if (this.apiLoaded) {
       this.initMap();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['currentLocationWeather'] && this.currentLocationWeather) {
+      this.findCurrentHourIndex();
     }
   }
 
@@ -498,5 +511,168 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     }
   }
+
+  async fetchCurrentLocationWeather() {
+    if (!navigator.geolocation) {
+      this.currentWeatherError = 'Geolocation tidak disokong';
+      return;
+    }
+
+    this.currentWeatherLoading = true;
+    this.currentWeatherError = null;
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+
+          // Reverse geocode to get location name
+          const geocoder = new google.maps.Geocoder();
+          geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
+            if (status === 'OK' && results && results[0]) {
+              this.currentLocationName = results[0].formatted_address.split(',')[0];
+            } else {
+              this.currentLocationName = 'Lokasi Semasa';
+            }
+          });
+
+          // Fetch weather data
+          const weather = await firstValueFrom(
+            this.motorcycleService.getHourlyForecast(latitude, longitude)
+          );
+
+          this.currentLocationWeather = weather;
+        } catch (error) {
+          console.error('Error fetching current location weather:', error);
+          this.currentWeatherError = 'Gagal memuatkan data cuaca';
+        } finally {
+          this.currentWeatherLoading = false;
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        this.currentWeatherError = 'Gagal mendapatkan lokasi';
+        this.currentWeatherLoading = false;
+      }
+    );
+  }
+
+  private findCurrentHourIndex() {
+    if (!this.currentLocationWeather?.time) return;
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentDateStr = now.toISOString().split('T')[0];
+
+    // Find index closest to current time
+    this.currentHourIndex = this.currentLocationWeather.time.findIndex(time => {
+      return time.includes(currentDateStr) && parseInt(time.split('T')[1].split(':')[0]) >= currentHour;
+    });
+
+    if (this.currentHourIndex === -1) {
+      this.currentHourIndex = 0;
+    }
+  }
+
+  getCurrentTime(): string {
+    return new Date().toLocaleTimeString('ms-MY', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  }
+
+  getCurrentTemperature(): number {
+    return this.currentLocationWeather?.temperature_2m[this.currentHourIndex] || 0;
+  }
+
+  getApparentTemperature(): number {
+    return (this.currentLocationWeather as any)?.apparent_temperature?.[this.currentHourIndex] || this.getCurrentTemperature();
+  }
+
+  getCurrentRainProbability(): number {
+    return this.currentLocationWeather?.precipitation_probability[this.currentHourIndex] || 0;
+  }
+
+  getCurrentWindSpeed(): number {
+    return (this.currentLocationWeather as any)?.windspeed_10m?.[this.currentHourIndex] || 0;
+  }
+
+  getCurrentWindGust(): number {
+    return (this.currentLocationWeather as any)?.windgusts_10m?.[this.currentHourIndex] || 0;
+  }
+
+  getCurrentVisibility(): number {
+    return ((this.currentLocationWeather as any)?.visibility?.[this.currentHourIndex] / 1000) || 10;
+  }
+
+  getRainGradientClass(probability: number): string {
+    if (probability < 30) return 'bg-gradient-to-r from-green-400 to-green-500';
+    if (probability < 60) return 'bg-gradient-to-r from-yellow-400 to-yellow-500';
+    return 'bg-gradient-to-r from-red-400 to-red-500';
+  }
+
+  getWeatherIcon(): string {
+    const rainProb = this.getCurrentRainProbability();
+    const temp = this.getCurrentTemperature();
+
+    if (rainProb > 70) return '🌧️';
+    if (rainProb > 40) return '☁️🌧️';
+    if (rainProb > 10) return '☁️';
+    if (temp > 32) return '☀️🔥';
+    return '🌤️';
+  }
+
+  getWeatherCondition(): string {
+    const rainProb = this.getCurrentRainProbability();
+    if (rainProb > 70) return 'Hujan Lebat';
+    if (rainProb > 40) return 'Hujan Ringan';
+    if (rainProb > 10) return 'Mendung';
+    return 'Cerah';
+  }
+
+  getWeatherDescription(): string {
+    const rainProb = this.getCurrentRainProbability();
+    const temp = this.getCurrentTemperature();
+
+    if (rainProb > 70) return 'Bawa payung, elak perjalanan';
+    if (rainProb > 40) return 'Berpotensi hujan, bawa payung';
+    if (temp > 32) return 'Cuaca panas, minum air secukupnya';
+    return 'Cuaca sesuai untuk perjalanan';
+  }
+
+  getNextHoursRange(): string {
+    const startHour = new Date().getHours();
+    return `${startHour}:00 - ${startHour + 3}:00`;
+  }
+
+  getNext3Hours(): Array<{ time: string; icon: string; temp: number; rain: number }> {
+    if (!this.currentLocationWeather) return [];
+
+    const result = [];
+    for (let i = 0; i < 3; i++) {
+      const index = this.currentHourIndex + i;
+      if (index < this.currentLocationWeather.time.length) {
+        const timeStr = this.currentLocationWeather.time[index];
+        const hour = parseInt(timeStr.split('T')[1].split(':')[0]);
+        const rainProb = this.currentLocationWeather.precipitation_probability[index];
+        const temp = this.currentLocationWeather.temperature_2m[index];
+
+        let icon = '🌤️';
+        if (rainProb > 70) icon = '🌧️';
+        else if (rainProb > 40) icon = '☁️🌧️';
+        else if (rainProb > 10) icon = '☁️';
+
+        result.push({
+          time: `${hour}:00`,
+          icon,
+          temp: Math.round(temp),
+          rain: rainProb
+        });
+      }
+    }
+    return result;
+  }
+
 
 }

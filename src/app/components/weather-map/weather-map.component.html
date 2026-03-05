@@ -5,7 +5,7 @@
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div
-                    class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
+                    class="w-10 h-10 bg-linear-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
                     <span class="text-xl">🌤️</span>
                 </div>
                 <div>
@@ -28,11 +28,121 @@
         (onDateFilter)="onDateFilter($event)">
     </app-weather-cards>
 
-    <!-- Main Content Area - Map and Commuter -->
-    <div class="flex-1 flex flex-col lg:flex-row p-4 gap-4 min-h-[400px]">
-        <!-- Map Container - Takes 2/3 on large screens -->
+    <!-- Main Content Area - Map and Side Cards -->
+    <div class="grid grid-cols-10 p-4 gap-4">
+
+        <!-- Left Card - Enhanced Minimalist Design -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-full col-span-2">
+            <!-- Location Header with cleaner design -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 bg-linear-to-br from-blue-50 to-blue-100 rounded-xl flex items-center justify-center">
+                        <span class="text-lg">📍</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">{{ currentLocationName || 'Lokasi Semasa' }}</h4>
+                        <p class="text-xs text-gray-400">{{ getCurrentTime() }}</p>
+                    </div>
+                </div>
+                <span class="text-[10px] px-2.5 py-1.5 bg-gray-50 text-gray-500 font-medium rounded-full border border-gray-100">
+                    Sekarang
+                </span>
+            </div>
+
+            <!-- Current Weather Stats - Clean cards -->
+            <div class="grid grid-cols-2 gap-2.5 mb-4">
+                <!-- Temperature - Minimal card -->
+                <div class="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100/50">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-lg">🌡️</span>
+                        <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Suhu</span>
+                    </div>
+                    <div class="flex items-end gap-0.5">
+                        <span class="text-3xl font-light text-gray-900">
+                            {{ getCurrentTemperature() | number:'1.0-0' }}
+                        </span>
+                        <span class="text-sm text-gray-400 mb-1">°C</span>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-2 flex items-center gap-1">
+                        <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+                        Terasa {{ getApparentTemperature() | number:'1.0-0' }}°C
+                    </p>
+                </div>
+
+                <!-- Rain Probability - Minimal card -->
+                <div class="bg-gray-50/80 rounded-xl p-3.5 border border-gray-100/50">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-lg">☔</span>
+                        <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Hujan</span>
+                    </div>
+                    <div class="flex items-end gap-0.5">
+                        <span class="text-3xl font-light text-gray-900">
+                            {{ getCurrentRainProbability() }}
+                        </span>
+                        <span class="text-sm text-gray-400 mb-1">%</span>
+                    </div>
+                    <div class="w-full bg-gray-200/70 rounded-full h-1 mt-3">
+                        <div class="h-1 rounded-full transition-all duration-500"
+                            [style.width.%]="getCurrentRainProbability()"
+                            [ngClass]="getRainGradientClass(getCurrentRainProbability())">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Condition - Minimal chip -->
+            <div class="flex items-center gap-2.5 p-3 bg-blue-50/50 rounded-xl border border-blue-100/50 mb-3">
+                <span class="text-xl">{{ getWeatherIcon() }}</span>
+                <div class="flex-1">
+                    <p class="text-xs font-medium text-gray-800">{{ getWeatherCondition() }}</p>
+                    <p class="text-[10px] text-gray-500">{{ getWeatherDescription() }}</p>
+                </div>
+            </div>
+
+            <!-- Wind & Visibility Grid - Clean minimal -->
+            <div class="grid grid-cols-3 gap-1.5 mb-4">
+                <!-- Wind Speed -->
+                <div class="text-center p-2 bg-gray-50/50 rounded-lg border border-gray-100/50">
+                    <span class="text-base block mb-1 text-gray-600">💨</span>
+                    <p class="text-xs font-medium text-gray-800">{{ getCurrentWindSpeed() | number:'1.0-0' }}</p>
+                    <p class="text-[9px] text-gray-400 uppercase tracking-wider">km/h</p>
+                </div>
+
+                <!-- Wind Gusts -->
+                <div class="text-center p-2 bg-gray-50/50 rounded-lg border border-gray-100/50">
+                    <span class="text-base block mb-1 text-gray-600">🌪️</span>
+                    <p class="text-xs font-medium text-gray-800">{{ getCurrentWindGust() | number:'1.0-0' }}</p>
+                    <p class="text-[9px] text-gray-400 uppercase tracking-wider">ribut</p>
+                </div>
+
+                <!-- Visibility -->
+                <div class="text-center p-2 bg-gray-50/50 rounded-lg border border-gray-100/50">
+                    <span class="text-base block mb-1 text-gray-600">👁️</span>
+                    <p class="text-xs font-medium text-gray-800">{{ getCurrentVisibility() | number:'1.0-0' }}</p>
+                    <p class="text-[9px] text-gray-400 uppercase tracking-wider">km</p>
+                </div>
+            </div>
+
+            <!-- Hourly Forecast Preview - Enhanced minimal -->
+            <div class="mt-auto">
+                <div class="flex items-center justify-between mb-2.5">
+                    <p class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Ramalan 3 jam</p>
+                    <span class="text-[9px] text-gray-300">{{ getNextHoursRange() }}</span>
+                </div>
+                <div class="grid grid-cols-3 gap-1.5">
+                    <div *ngFor="let hour of getNext3Hours()" class="text-center p-2.5 bg-gray-50/80 rounded-xl border border-gray-100/50">
+                        <p class="text-[9px] text-gray-400 mb-1">{{ hour.time }}</p>
+                        <span class="text-lg block my-0.5">{{ hour.icon }}</span>
+                        <p class="text-xs font-medium text-gray-800">{{ hour.temp }}°</p>
+                        <p class="text-[8px] text-gray-400 mt-1">{{ hour.rain }}%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center - Map Container (unchanged) -->
         <div
-            class="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative min-h-[400px] lg:min-h-0">
+            class="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative col-span-6 lg:min-h-0">
             <!-- Loading State Overlay -->
             <div *ngIf="isLoading || isWeatherLoading"
                 class="absolute inset-0 bg-white/90 backdrop-blur-sm z-20 flex items-center justify-center">
@@ -170,19 +280,138 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div class="grid grid-cols-2 gap-4 items-stretch p-4">
-        <div class="h-full">
-            <app-motorcycle-commuter class="block h-full" (calculate)="onCommuterCalculate($event)">
-            </app-motorcycle-commuter>
-        </div>
 
-        <div class="h-full">
-            <app-commute-result class="block h-full" [weekDays]="commuterWeekDays" [homeToWork]="commuterHomeToWork"
-                [workToHome]="commuterWorkToHome" [showResults]="commuterShowResults"
-                [homeLocation]="commuterHomeLocation" [workLocation]="commuterWorkLocation"
-                (showRoute)="onCommuterShowRoute()">
-            </app-commute-result>
+        <!-- Right Card - Enhanced Minimalist Design -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-full col-span-2">
+            <!-- Quick Stats Header -->
+            <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center">
+                        <span class="text-sm">⚡</span>
+                    </div>
+                    <span class="text-xs font-medium text-gray-700">Statistik Pantas</span>
+                </div>
+                <span class="text-[10px] text-gray-400 bg-gray-50 px-2 py-1 rounded-full border border-gray-100">
+                    Kemaskini
+                </span>
+            </div>
+
+            <!-- Main Weather Stats - Minimal Grid -->
+            <div class="grid grid-cols-3 gap-2 mb-5">
+                <div class="text-center p-2.5 bg-gray-50/50 rounded-xl border border-gray-100/50">
+                    <span class="text-xl block mb-1">🌡️</span>
+                    <p class="text-xs font-medium text-gray-800">{{ getCurrentTemperature() | number:'1.0-0' }}°</p>
+                    <p class="text-[9px] text-gray-400 mt-1">Min</p>
+                </div>
+                <div class="text-center p-2.5 bg-gray-50/50 rounded-xl border border-gray-100/50">
+                    <span class="text-xl block mb-1">🔥</span>
+                    <p class="text-xs font-medium text-gray-800">{{ getApparentTemperature() | number:'1.0-0' }}°</p>
+                    <p class="text-[9px] text-gray-400 mt-1">Terasa</p>
+                </div>
+                <div class="text-center p-2.5 bg-gray-50/50 rounded-xl border border-gray-100/50">
+                    <span class="text-xl block mb-1">💧</span>
+                    <p class="text-xs font-medium text-gray-800">{{ getCurrentRainProbability() }}%</p>
+                    <p class="text-[9px] text-gray-400 mt-1">Hujan</p>
+                </div>
+            </div>
+
+            <!-- Wind Details - Minimal Cards -->
+            <div class="space-y-2 mb-5">
+                <div class="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100/50">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-lg">💨</span>
+                        <div>
+                            <p class="text-xs text-gray-600">Kelajuan Angin</p>
+                            <p class="text-[9px] text-gray-400">Wind Speed</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-medium text-gray-800">{{ getCurrentWindSpeed() | number:'1.0-0' }} <span class="text-[9px] text-gray-400">km/h</span></span>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100/50">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-lg">🌪️</span>
+                        <div>
+                            <p class="text-xs text-gray-600">Ribut Angin</p>
+                            <p class="text-[9px] text-gray-400">Wind Gust</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-medium text-gray-800">{{ getCurrentWindGust() | number:'1.0-0' }} <span class="text-[9px] text-gray-400">km/h</span></span>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100/50">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-lg">👁️</span>
+                        <div>
+                            <p class="text-xs text-gray-600">Jarak Penglihatan</p>
+                            <p class="text-[9px] text-gray-400">Visibility</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-medium text-gray-800">{{ getCurrentVisibility() | number:'1.0-0' }} <span class="text-[9px] text-gray-400">km</span></span>
+                </div>
+            </div>
+
+            <!-- UV Index & Humidity - Minimal Progress -->
+            <div class="space-y-3 mb-5">
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Indeks UV</span>
+                        <span class="text-[10px] text-gray-400">Sederhana</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-1.5">
+                        <div class="h-1.5 rounded-full bg-yellow-400" style="width: 45%"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Kelembapan</span>
+                        <span class="text-[10px] text-gray-400">75%</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-1.5">
+                        <div class="h-1.5 rounded-full bg-blue-400" style="width: 75%"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Tekanan</span>
+                        <span class="text-[10px] text-gray-400">1013 hPa</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-1.5">
+                        <div class="h-1.5 rounded-full bg-green-400" style="width: 60%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Tips - Minimal -->
+            <div class="mt-auto pt-3 border-t border-gray-100">
+                <div class="flex items-start gap-2.5">
+                    <span class="text-sm">💡</span>
+                    <div>
+                        <p class="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-0.5">Tip Hari Ini</p>
+                        <p class="text-xs text-gray-700 leading-relaxed">Bawa payung, hujan dijangka turun petang ini.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commuter Section - Clean divider -->
+    <div class="mt-4">
+        <div class="grid grid-cols-2 gap-4 items-stretch p-4">
+            <div class="h-full">
+                <app-motorcycle-commuter class="block h-full" (calculate)="onCommuterCalculate($event)">
+                </app-motorcycle-commuter>
+            </div>
+
+            <div class="h-full">
+                <app-commute-result class="block h-full" [weekDays]="commuterWeekDays" [homeToWork]="commuterHomeToWork"
+                    [workToHome]="commuterWorkToHome" [showResults]="commuterShowResults"
+                    [homeLocation]="commuterHomeLocation" [workLocation]="commuterWorkLocation"
+                    (showRoute)="onCommuterShowRoute()">
+                </app-commute-result>
+            </div>
         </div>
     </div>
 </div>

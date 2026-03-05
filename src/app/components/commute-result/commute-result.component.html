@@ -16,13 +16,6 @@
         <p class="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed">
             Pilih lokasi rumah & tempat kerja untuk melihat kebarangkalian hujan semasa perjalanan anda.
         </p>
-
-        <!-- Decorative Elements -->
-        <div class="flex items-center gap-2 mt-8 text-xs text-gray-400">
-            <span class="w-2 h-2 bg-gray-200 rounded-full"></span>
-            <span>🏠 → 🏢 → 🏠</span>
-            <span class="w-2 h-2 bg-gray-200 rounded-full"></span>
-        </div>
     </div>
 
     <!-- Results Section -->
@@ -40,7 +33,7 @@
         <!-- Weekly Overview Cards -->
         <div class="grid grid-cols-2 gap-3">
             <!-- Clear Days Card -->
-            <div class="group relative bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 
+            <div class="group relative bg-linear-to-br from-green-50 to-emerald-50 rounded-xl p-4 
                         border border-green-100/50 hover:border-green-200 transition-all duration-300">
                 <div class="flex items-start justify-between mb-2">
                     <div class="text-2xl transform group-hover:scale-110 transition-transform duration-300">🌤️</div>
@@ -60,7 +53,7 @@
             </div>
 
             <!-- Rainy Days Card -->
-            <div class="group relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 
+            <div class="group relative bg-linear-to-br from-blue-50 to-indigo-50 rounded-xl p-4 
                         border border-blue-100/50 hover:border-blue-200 transition-all duration-300">
                 <div class="flex items-start justify-between mb-2">
                     <div class="text-2xl transform group-hover:scale-110 transition-transform duration-300">☔</div>
@@ -174,7 +167,7 @@
         <!-- Action Buttons -->
         <div class="space-y-2">
             <!-- Show Route Button -->
-            <button (click)="onShowRoute()" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3.5 px-4 
+            <button (click)="onShowRoute()" class="w-full bg-linear-to-r from-blue-600 to-blue-700 text-white py-3.5 px-4 
                            rounded-xl font-medium text-sm tracking-wide
                            hover:from-blue-700 hover:to-blue-800 
                            focus:ring-4 focus:ring-blue-500/20 
@@ -186,11 +179,11 @@
             </button>
 
             <!-- Safety Alert -->
-            <div *ngIf="getHighestRainDay() as highest" class="group relative overflow-hidden rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 
+            <div *ngIf="getHighestRainDay() as highest" class="group relative overflow-hidden rounded-xl bg-linear-to-r from-amber-50 to-orange-50 
                         border border-amber-200/50 p-4 hover:border-amber-300 transition-all duration-200">
 
                 <!-- Decorative Line -->
-                <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-400 to-orange-400"></div>
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-linear-to-b from-amber-400 to-orange-400"></div>
 
                 <div class="flex items-start gap-3 pl-2">
                     <!-- Icon -->
