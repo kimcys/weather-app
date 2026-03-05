@@ -18,9 +18,10 @@ export class LocationMatcherService {
     const seen = new Set<string>();
 
     for (const loc of locations) {
-      if (!loc?.name) continue;
+      const name = (loc as any).name ?? (loc as any).location_name;
+      if (!name) continue;
 
-      const key = loc.name.toLowerCase().trim().replace(/\s+/g, ' ');
+      const key = name.toLowerCase().trim().replace(/\s+/g, ' ');
       if (seen.has(key)) continue;
       seen.add(key);
       this.locations.push(loc);

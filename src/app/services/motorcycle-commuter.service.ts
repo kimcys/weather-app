@@ -12,14 +12,8 @@ export class MotorcycleCommuterService {
 
   getHourlyForecast(lat: number, lng: number): Observable<HourlyWeather> {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=precipitation_probability,precipitation,rain,temperature_2m,apparent_temperature,windspeed_10m,windgusts_10m,visibility,weathercode&timezone=Asia/Kuala_Lumpur&forecast_days=7`;
-    console.log(`Fetching forecast for lat: ${lat}, lng: ${lng}`);
     return this.http.get<WeatherApiResponse>(url).pipe(
       map(response => {
-        console.log('API Response received:', {
-          hasHourly: !!response.hourly,
-          timeLength: response.hourly?.time?.length,
-          precipLength: response.hourly?.precipitation_probability?.length
-        });
         return response.hourly;
       }),
       catchError(error => {

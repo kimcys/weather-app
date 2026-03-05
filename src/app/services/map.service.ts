@@ -13,6 +13,9 @@ export class MapService {
   private markers: google.maps.marker.AdvancedMarkerElement[] = [];
   private markerCluster: MarkerClusterer | null = null;
   private directionsRenderers: google.maps.DirectionsRenderer[] = [];
+  private markerByTitle = new Map<string, google.maps.marker.AdvancedMarkerElement | google.maps.Marker>();
+  private forecastByTitle = new Map<string, { latest: WeatherForecast; all: WeatherForecast[]; coords: { lat: number; lng: number } }>();
+  private payloadByTitle = new Map<string, { coords: { lat: number; lng: number }; latest: WeatherForecast; all: WeatherForecast[] }>();
 
   constructor(private ngZone: NgZone) { }
 
@@ -47,8 +50,6 @@ export class MapService {
 
       this.map = new google.maps.Map(mapElement, mapOptions);
       this.infoWindow = new google.maps.InfoWindow();
-
-      console.log('Map initialized successfully');
       return true;
     } catch (error) {
       console.error('Error initializing map:', error);
@@ -78,7 +79,8 @@ export class MapService {
     this.clearMarkers();
 
     const advancedMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
-    const useAdvancedMarker = typeof google.maps.marker !== 'undefined' &&
+    const useAdvancedMarker =
+      typeof google.maps.marker !== 'undefined' &&
       google.maps.marker &&
       typeof google.maps.marker.AdvancedMarkerElement !== 'undefined';
 
@@ -88,6 +90,7 @@ export class MapService {
 
       let marker: google.maps.marker.AdvancedMarkerElement | google.maps.Marker;
 
+      // --- create marker ---
       if (useAdvancedMarker) {
         marker = new google.maps.marker.AdvancedMarkerElement({
           position: coords,
@@ -99,91 +102,84 @@ export class MapService {
         marker = new google.maps.Marker({
           position: coords,
           title: name,
-          map: this.map,
-          icon: {
-            url: `data:image/svg+xml,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-              <circle cx="20" cy="20" r="18" fill="${markerContent.style.backgroundColor}" stroke="white" stroke-width="2"/>
-              <text x="20" y="28" font-size="22" text-anchor="middle" fill="black" font-family="Arial">${markerContent.textContent}</text>
-            </svg>
-          `)}`,
-            scaledSize: new google.maps.Size(40, 40)
-          }
+          map: this.map
         });
       }
 
+      // --- store lookup so cards can focus by name later ---
+      const key = this.normKey(name);
+      this.markerByTitle.set(key, marker);
+      this.payloadByTitle.set(key, { coords, latest: latestForecast, all: forecasts });
+
+      // --- click handler ---
       marker.addListener('click', (e: any) => {
-        if (e.stopPropagation) {
-          e.stopPropagation();
-        }
+        if (e?.stopPropagation) e.stopPropagation();
 
         this.ngZone.run(() => {
-          if (this.map) {
-            this.map.panTo(coords);
-            const currentZoom = this.map.getZoom() ?? 6;
-            const targetZoom = currentZoom < 10 ? 10 : currentZoom;
-            this.smoothZoom(this.map, targetZoom, 70);
-          }
+          if (!this.map) return;
+
+          this.map.panTo(coords);
+
+          const currentZoom = this.map.getZoom() ?? 6;
+          const targetZoom = currentZoom < 10 ? 10 : currentZoom;
+          this.smoothZoom(this.map!, Math.min(targetZoom, 12), 70);
 
           onMarkerClick(latestForecast, forecasts);
           this.showInfoWindow(marker, latestForecast, forecasts);
         });
       });
 
-      advancedMarkers.push(marker as google.maps.marker.AdvancedMarkerElement);
+      // --- keep a list for filtering/hiding ---
       this.markers.push(marker as google.maps.marker.AdvancedMarkerElement);
+
+      if (useAdvancedMarker) {
+        advancedMarkers.push(marker as google.maps.marker.AdvancedMarkerElement);
+      }
     }
 
+    // --- clustering (only if we have advanced markers list) ---
     if (advancedMarkers.length > 0) {
       try {
         const markerClustererModule = await import('@googlemaps/markerclusterer');
         const MarkerClusterer = markerClustererModule.MarkerClusterer;
 
-        if (MarkerClusterer) {
-          this.markerCluster = new MarkerClusterer({
-            map: this.map,
-            markers: advancedMarkers,
-            onClusterClick: (_event, cluster, map) => {
-              const bounds = new google.maps.LatLngBounds();
+        this.markerCluster = new MarkerClusterer({
+          map: this.map,
+          markers: advancedMarkers,
+          onClusterClick: (_event, cluster, map) => {
+            const bounds = new google.maps.LatLngBounds();
 
-              cluster.markers.forEach((m: any) => {
-                // Classic Marker
-                if (m instanceof google.maps.Marker) {
-                  const p = m.getPosition();
-                  if (p) bounds.extend(p);
-                  return;
-                }
+            cluster.markers.forEach((m: any) => {
+              // Classic Marker
+              if (m instanceof google.maps.Marker) {
+                const p = m.getPosition();
+                if (p) bounds.extend(p);
+                return;
+              }
 
-                const p = m?.position;
-                if (!p) return;
+              // Advanced marker: m.position can be LatLng or {lat,lng}
+              const p = m?.position;
+              if (!p) return;
 
-                if (p instanceof google.maps.LatLng) {
-                  bounds.extend(p);
-                } else if (typeof p.lat === 'number' && typeof p.lng === 'number') {
-                  bounds.extend(p);
-                }
-              });
+              if (p instanceof google.maps.LatLng) bounds.extend(p);
+              else if (typeof p.lat === 'number' && typeof p.lng === 'number') bounds.extend(p);
+            });
 
-              if (bounds.isEmpty()) return;
+            if (bounds.isEmpty()) return;
 
-              map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
-              google.maps.event.addListenerOnce(map, 'idle', () => {
-                const z = map.getZoom() ?? 0;
-                const maxAllowed = 14;
-                const center = bounds.getCenter();
-                map.panTo(center);
+            map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+            google.maps.event.addListenerOnce(map, 'idle', () => {
+              const z = map.getZoom() ?? 0;
+              const center = bounds.getCenter();
+              map.panTo(center);
 
-                if (z > maxAllowed) {
-                  this.smoothZoom(map, maxAllowed, 60);
-                }
-              });
-            }
-          });
-          console.log('Marker cluster created with zoom on click');
-        }
+              const maxAllowed = 14;
+              if (z > maxAllowed) this.smoothZoom(map, maxAllowed, 60);
+            });
+          }
+        });
       } catch (error) {
         console.warn('Error creating marker cluster:', error);
-        console.log('Using markers without clustering');
       }
     }
   }
@@ -395,14 +391,14 @@ export class MapService {
   }
 
   showRoute(
-    start: {lat: number, lng: number}, 
-    end: {lat: number, lng: number}, 
+    start: { lat: number, lng: number },
+    end: { lat: number, lng: number },
     label: string,
     color: string = '#3B82F6'
   ) {
     const map = this.getMap();
     if (!map) return;
-  
+
     // Create directions service and renderer
     const directionsService = new google.maps.DirectionsService();
     const directionsRenderer = new google.maps.DirectionsRenderer({
@@ -414,10 +410,10 @@ export class MapService {
         strokeOpacity: 0.8
       }
     });
-  
+
     // Store renderer to clear later
     this.directionsRenderers.push(directionsRenderer);
-  
+
     // Calculate route
     directionsService.route({
       origin: start,
@@ -426,29 +422,37 @@ export class MapService {
     }, (response, status) => {
       if (status === 'OK') {
         directionsRenderer.setDirections(response);
-        
-        // Add info window with journey info
-        const infoWindow = new google.maps.InfoWindow({
-          content: `
-            <div class="p-2">
-              <strong>${label}</strong><br>
-              Jarak: ${response?.routes?.[0]?.legs?.[0]?.distance?.text ?? 'N/A'}<br>
-              Masa: ${response?.routes[0].legs[0].duration?.text}
-            </div>
-          `
-        });
-        
-        // Show info at midpoint
-        const midPoint = {
-          lat: (start.lat + end.lat) / 2,
-          lng: (start.lng + end.lng) / 2
-        };
-        infoWindow.setPosition(midPoint);
-        infoWindow.open(map);
       }
     });
   }
-  
+
+  private normKey(name: string): string {
+    return (name || '').toLowerCase().trim().replace(/\s+/g, ' ');
+  }
+
+  focusLocation(locationName: string): boolean {
+    if (!this.map) return false;
+
+    const key = this.normKey(locationName);
+    const marker = this.markerByTitle.get(key);
+    const payload = this.forecastByTitle.get(key);
+
+    if (!payload) return false;
+
+    // 1) Pan + zoom
+    this.map.panTo(payload.coords);
+    const currentZoom = this.map.getZoom() ?? 6;
+    const targetZoom = currentZoom < 10 ? 10 : currentZoom;
+    this.smoothZoom(this.map, Math.min(targetZoom, 12), 70); // keep within maxZoom
+
+    // 2) Open same info window as marker click
+    if (marker) {
+      this.showInfoWindow(marker as any, payload.latest, payload.all);
+    }
+
+    return true;
+  }
+
   clearRoutes() {
     this.directionsRenderers.forEach(renderer => renderer.setMap(null));
     this.directionsRenderers = [];

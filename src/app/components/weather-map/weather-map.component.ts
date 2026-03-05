@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MapLegendComponent } from '../map-legend/map-legend.component';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { WeatherForecast } from '../../model/forecast.model';
 import { WeatherService } from '../../services/weather.service';
@@ -17,7 +16,7 @@ import { MotorcycleCommuterService } from '../../services/motorcycle-commuter.se
 
 @Component({
   selector: 'app-weather-map',
-  imports: [CommonModule, FormsModule, WeatherCardsComponent, MapLegendComponent, MotorcycleCommuterComponent, CommuteResultComponent],
+  imports: [CommonModule, FormsModule, WeatherCardsComponent, MotorcycleCommuterComponent, CommuteResultComponent],
   templateUrl: './weather-map.component.html',
   styleUrl: './weather-map.component.css'
 })
@@ -112,13 +111,11 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
         this.locationMatcher.setLocations(response.items);
         this.locationsCount = response.items.length;
         this.locationsLoaded = true;
-        console.log(`Successfully loaded ${response.items.length} locations`);
         this.loadingMessage = 'Lokasi dijumpai, memuatkan data cuaca...';
       } else {
         this.locationsError = 'Invalid response format from server';
       }
     } catch (error) {
-      console.error('Error loading locations:', error);
       this.locationsError = error instanceof Error ? error.message : 'Unknown error loading locations';
     } finally {
       this.locationsLoading = false;
@@ -152,7 +149,6 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
           this.finalizeLoadingIfReady();
         },
         error: (error) => {
-          console.error('Error loading weather data:', error);
           this.locationsError = 'Error loading weather data';
           this.isWeatherLoading = false; // Clear weather loading flag on error
           this.isLoading = false; // Also clear main loading flag
@@ -300,10 +296,47 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
   }
 
   onLocationSelect(location: string): void {
-    const forecasts = this.forecasts.filter(f => f.location.location_name === location);
-    if (forecasts.length > 0) {
-      this.selectedForecast = WeatherUtils.getLatestForecast(forecasts);
+    const forecasts = this.forecasts.filter(
+      f => f.location.location_name === location
+    );
+    if (forecasts.length === 0) return;
+    this.selectedForecast = WeatherUtils.getLatestForecast(forecasts);
+  
+    const map = this.mapService.getMap();
+    if (!map) return;
+  
+    const coords = this.locationMatcher.findCoordinates(location);  
+    if (coords) {
+      map.panTo(coords);
+      map.setZoom(9);
+      this.scrollToMap();
+      return;
     }
+  
+    const geocoder = new google.maps.Geocoder();  
+    geocoder.geocode(
+      { address: `${location}, Malaysia` },
+      (results, status) => {
+        if (status === 'OK' && results?.[0]) {
+          const pos = results[0].geometry.location;
+  
+          const latLng = {
+            lat: pos.lat(),
+            lng: pos.lng()
+          };  
+          map.panTo(latLng);
+          map.setZoom(9);
+  
+        } else {
+          console.error(
+            `Geocode failed for "${location}"`,
+            status
+          );
+        }
+      }
+    );
+  
+    this.scrollToMap();
   }
 
   async centerOnUserLocation(): Promise<void> {
