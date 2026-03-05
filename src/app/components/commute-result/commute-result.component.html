@@ -1,79 +1,106 @@
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-full flex flex-col">
+<div class="bg-white dark:bg-black rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 
+            p-4 sm:p-6 h-full flex flex-col transition-colors duration-200">
+
     <!-- Empty State - Minimalist -->
-    <div *ngIf="!showResults" class="flex-1 flex flex-col items-center justify-center text-center py-12 px-4">
+    <div *ngIf="!showResults"
+        class="flex-1 flex flex-col items-center justify-center text-center py-8 sm:py-12 px-2 sm:px-4">
+
         <!-- Animated Icon -->
-        <div class="relative mb-6">
-            <div class="text-7xl mb-2 animate-float">🌦️</div>
-            <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-gray-100 rounded-full"></div>
+        <div class="relative mb-4 sm:mb-6">
+            <div class="text-5xl sm:text-7xl mb-2 animate-float">🌦️</div>
+            <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 sm:w-12 h-1 
+                        bg-gray-100 dark:bg-gray-800 rounded-full"></div>
         </div>
 
         <!-- Title -->
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Belum ada keputusan
         </h3>
 
         <!-- Description -->
-        <p class="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed">
+        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-xs mx-auto leading-relaxed">
             Pilih lokasi rumah & tempat kerja untuk melihat kebarangkalian hujan semasa perjalanan anda.
         </p>
     </div>
 
     <!-- Results Section -->
-    <div *ngIf="showResults" class="space-y-4">
+    <div *ngIf="showResults" class="space-y-4 sm:space-y-5">
         <!-- Header Summary -->
-        <div class="flex items-center justify-between">
-            <h3 class="text-sm font-medium text-gray-500">Ramalan Mingguan</h3>
-            <div class="flex items-center gap-2">
-                <button (click)="onClearResults()" 
-                    class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors duration-200 flex items-center gap-1">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Ramalan Mingguan</h3>
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+                <button (click)="onClearResults()" class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-900 
+                           text-gray-600 dark:text-gray-300 
+                           rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 
+                           transition-colors duration-200 flex items-center gap-1
+                           border border-transparent dark:border-gray-700">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    <span>Kosongkan</span>
+                    <span class="hidden xs:inline">Kosongkan</span>
                 </button>
-                <span class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                <span class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-900 
+                             text-gray-600 dark:text-gray-300 rounded-full
+                             border border-transparent dark:border-gray-700">
                     {{getWorkingDays().length}} hari bekerja
                 </span>
             </div>
         </div>
 
-        <!-- Weekly Overview Cards -->
-        <div class="grid grid-cols-2 gap-3">
+        <!-- Weekly Overview Cards - Responsive Grid -->
+        <div class="grid grid-cols-2 gap-2 sm:gap-3">
             <!-- Clear Days Card -->
-            <div class="group relative bg-linear-to-br from-green-50 to-emerald-50 rounded-xl p-4 
-                        border border-green-100/50 hover:border-green-200 transition-all duration-300">
+            <div class="group relative bg-linear-to-br from-green-50 to-emerald-50 
+                        dark:from-green-950 dark:to-emerald-950
+                        rounded-xl p-3 sm:p-4 
+                        border border-green-100/50 dark:border-green-900/50 
+                        hover:border-green-200 dark:hover:border-green-800 
+                        transition-all duration-300">
                 <div class="flex items-start justify-between mb-2">
-                    <div class="text-2xl transform group-hover:scale-110 transition-transform duration-300">🌤️</div>
-                    <span class="text-xs font-medium text-green-600 bg-white/60 px-2 py-1 rounded-full">
+                    <div class="text-xl sm:text-2xl transform group-hover:scale-110 transition-transform duration-300">
+                        🌤️
+                    </div>
+                    <span class="text-xs font-medium text-green-600 dark:text-green-400 
+                                 bg-white/60 dark:bg-black/60 px-2 py-1 rounded-full
+                                 border border-transparent dark:border-green-900/30">
                         {{getClearDays()}} hari
                     </span>
                 </div>
-                <p class="text-sm font-medium text-gray-700">Hari Cerah</p>
-                <p class="text-xs text-gray-500 mt-1">Risiko hujan rendah</p>
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Hari Cerah</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Risiko hujan rendah</p>
 
                 <!-- Progress Bar -->
-                <div class="mt-3 w-full bg-white/50 rounded-full h-1">
-                    <div class="h-1 bg-green-400 rounded-full"
+                <div class="mt-3 w-full bg-white/50 dark:bg-gray-900 rounded-full h-1">
+                    <div class="h-1 bg-green-400 dark:bg-green-500 rounded-full"
                         [style.width.%]="(getClearDays() / getWorkingDays().length) * 100">
                     </div>
                 </div>
             </div>
 
             <!-- Rainy Days Card -->
-            <div class="group relative bg-linear-to-br from-blue-50 to-indigo-50 rounded-xl p-4 
-                        border border-blue-100/50 hover:border-blue-200 transition-all duration-300">
+            <div class="group relative bg-linear-to-br from-blue-50 to-indigo-50 
+                        dark:from-blue-950 dark:to-indigo-950 
+                        rounded-xl p-3 sm:p-4 
+                        border border-blue-100/50 dark:border-blue-900/50 
+                        hover:border-blue-200 dark:hover:border-blue-800 
+                        transition-all duration-300">
                 <div class="flex items-start justify-between mb-2">
-                    <div class="text-2xl transform group-hover:scale-110 transition-transform duration-300">☔</div>
-                    <span class="text-xs font-medium text-blue-600 bg-white/60 px-2 py-1 rounded-full">
+                    <div class="text-xl sm:text-2xl transform group-hover:scale-110 transition-transform duration-300">
+                        ☔
+                    </div>
+                    <span class="text-xs font-medium text-blue-600 dark:text-blue-400 
+                                 bg-white/60 dark:bg-black/60 px-2 py-1 rounded-full
+                                 border border-transparent dark:border-blue-900/30">
                         {{getRainyDays()}} hari
                     </span>
                 </div>
-                <p class="text-sm font-medium text-gray-700">Hari Hujan</p>
-                <p class="text-xs text-gray-500 mt-1">Perlu persediaan</p>
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Hari Hujan</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Perlu persediaan</p>
 
                 <!-- Progress Bar -->
-                <div class="mt-3 w-full bg-white/50 rounded-full h-1">
-                    <div class="h-1 bg-blue-400 rounded-full"
+                <div class="mt-3 w-full bg-white/50 dark:bg-gray-900 rounded-full h-1">
+                    <div class="h-1 bg-blue-400 dark:bg-blue-500 rounded-full"
                         [style.width.%]="(getRainyDays() / getWorkingDays().length) * 100">
                     </div>
                 </div>
@@ -81,54 +108,77 @@
         </div>
 
         <!-- Safety Alert -->
-        <div *ngIf="getHighestRainDay() as highest" class="group relative overflow-hidden rounded-xl bg-linear-to-r from-amber-50 to-orange-50 
-                        border border-amber-200/50 p-4 hover:border-amber-300 transition-all duration-200">
+        <div *ngIf="getHighestRainDay() as highest" class="group relative overflow-hidden rounded-xl 
+                    bg-linear-to-r from-amber-50 to-orange-50 
+                    dark:from-amber-950 dark:to-orange-950 
+                    border border-amber-200/50 dark:border-amber-900/50 
+                    p-3 sm:p-4 hover:border-amber-300 dark:hover:border-amber-800 
+                    transition-all duration-200">
 
-            <!-- Decorative Line -->
-            <div class="absolute left-0 top-0 bottom-0 w-1 bg-linear-to-b from-amber-400 to-orange-400"></div>
+            <!-- Decorative Line - stays the same in dark mode for visibility -->
+            <div class="absolute left-0 top-0 bottom-0 w-1 
+                        bg-linear-to-b from-amber-400 to-orange-400"></div>
 
-            <div class="flex items-start gap-3 pl-2">
+            <div class="flex items-start gap-2 sm:gap-3 pl-2">
                 <!-- Icon -->
-                <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-xl shadow-sm">
+                <div class="w-7 h-7 sm:w-8 sm:h-8 bg-white dark:bg-black 
+                            rounded-lg flex items-center justify-center text-lg sm:text-xl 
+                            shadow-sm dark:shadow-gray-900 border border-transparent dark:border-gray-800">
                     ⚠️
                 </div>
 
                 <!-- Content -->
-                <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                        <h5 class="text-sm font-semibold text-gray-800">Awas! Hari {{highest.day}}</h5>
-                        <span class="text-xs px-2 py-0.5 bg-white text-amber-600 rounded-full">
+                <div class="flex-1 min-w-0">
+                    <div class="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2 mb-1">
+                        <h5 class="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white">
+                            Awas! Hari {{highest.day}}
+                        </h5>
+                        <span class="text-xs px-2 py-0.5 bg-white dark:bg-black 
+                                     text-amber-600 dark:text-amber-400 rounded-full 
+                                     border border-transparent dark:border-amber-900/30 self-start">
                             {{highest.probability}}% hujan
                         </span>
                     </div>
-                    <p class="text-xs text-gray-600 leading-relaxed">
+                    <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
                         Kebarangkalian hujan tinggi semasa perjalanan.
-                        <span class="text-amber-600 font-medium">Bawa peralatan hujan!</span>
+                        <span class="text-amber-600 dark:text-amber-400 font-medium">
+                            Bawa peralatan hujan!
+                        </span>
                     </p>
                 </div>
             </div>
         </div>
 
         <!-- Daily Rain Probability -->
-        <div class="space-y-4">
+        <div class="space-y-3 sm:space-y-4">
             <div class="flex items-center gap-2">
-                <h4 class="text-sm font-medium text-gray-700">Kebarangkalian Hujan</h4>
-                <span class="text-xs text-gray-400">Mengikut hari</span>
+                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Kebarangkalian Hujan</h4>
+                <span class="text-xs text-gray-400 dark:text-white">Mengikut hari</span>
             </div>
 
-            <div class="space-y-4 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
-                <div *ngFor="let day of getWorkingDays()" class="group bg-gray-50/50 rounded-xl p-4 hover:bg-gray-50 transition-all duration-200
-                            border border-transparent hover:border-gray-200">
+            <!-- Scrollable Container - Touch Friendly -->
+            <div class="space-y-3 sm:space-y-4 max-h-[350px] sm:max-h-[400px] overflow-y-auto 
+                        pr-1 sm:pr-2 custom-scrollbar
+                        touch-pan-y overscroll-contain">
+                <div *ngFor="let day of getWorkingDays()" class="group bg-gray-50/50 dark:bg-gray-900/50 
+                            rounded-xl p-3 sm:p-4 
+                            hover:bg-gray-50 dark:hover:bg-gray-900 
+                            transition-all duration-200
+                            border border-transparent hover:border-gray-200 
+                            dark:hover:border-gray-800">
 
                     <!-- Day Header -->
-                    <div class="flex items-center justify-between mb-3">
+                    <div class="flex flex-col xs:flex-row xs:items-center justify-between gap-2 mb-3">
                         <div class="flex items-center gap-2">
-                            <span class="text-sm font-semibold text-gray-800">{{day.label}}</span>
-                            <span class="text-xs px-2 py-0.5 bg-gray-200/50 text-gray-600 rounded-full">
+                            <span class="text-sm font-semibold text-gray-800 dark:text-white">
+                                {{day.label}}
+                            </span>
+                            <span class="text-xs px-2 py-0.5 bg-gray-200/50 dark:bg-gray-800 
+                                         text-gray-600 dark:text-gray-300 rounded-full">
                                 {{day.isWorking ? 'Bekerja' : 'Rehat'}}
                             </span>
                         </div>
-                        <span class="text-xs text-gray-400">
+                        <span class="text-xs text-gray-400 dark:text-white">
                             {{getDailyAverageRain(day)}}% purata
                         </span>
                     </div>
@@ -136,23 +186,31 @@
                     <!-- Home to Work Journey -->
                     <div class="mb-3">
                         <div class="flex items-center justify-between text-xs mb-2">
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1 sm:gap-2 flex-wrap">
                                 <span
-                                    class="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-sm shadow-sm">🏠</span>
-                                <span class="text-gray-500">→</span>
+                                    class="w-5 h-5 sm:w-6 sm:h-6 bg-white dark:bg-black 
+                                             rounded-lg flex items-center justify-center text-xs sm:text-sm 
+                                             shadow-sm dark:shadow-gray-900 border border-transparent dark:border-gray-800">
+                                    🏠
+                                </span>
+                                <span class="text-gray-500 dark:text-gray-400">→</span>
                                 <span
-                                    class="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-sm shadow-sm">🏢</span>
-                                <span class="text-gray-400 text-[10px] ml-1">
+                                    class="w-5 h-5 sm:w-6 sm:h-6 bg-white dark:bg-black 
+                                             rounded-lg flex items-center justify-center text-xs sm:text-sm 
+                                             shadow-sm dark:shadow-gray-900 border border-transparent dark:border-gray-800">
+                                    🏢
+                                </span>
+                                <span class="text-gray-400 dark:text-white text-[10px] ml-1 whitespace-nowrap">
                                     {{homeToWork.departure}} - {{homeToWork.arrival}}
                                 </span>
                             </div>
-                            <span [class]="getRainTextClass(day.rainProbability.homeToWork)">
+                            <span [class]="getRainTextClass(day.rainProbability.homeToWork)" class="font-medium">
                                 {{day.rainProbability.homeToWork}}%
                             </span>
                         </div>
 
                         <!-- Progress Bar with Gradient -->
-                        <div class="w-full h-2 bg-gray-200/50 rounded-full overflow-hidden">
+                        <div class="w-full h-2 bg-gray-200/50 dark:bg-gray-800 rounded-full overflow-hidden">
                             <div class="h-full rounded-full transition-all duration-500"
                                 [style.width.%]="day.rainProbability.homeToWork"
                                 [ngClass]="getRainGradientClass(day.rainProbability.homeToWork)">
@@ -160,7 +218,7 @@
                         </div>
 
                         <!-- Status Text -->
-                        <p class="text-[10px] mt-1 text-gray-400">
+                        <p class="text-[10px] mt-1 text-gray-400 dark:text-white">
                             {{getJourneyStatus(day.rainProbability.homeToWork)}}
                         </p>
                     </div>
@@ -168,23 +226,31 @@
                     <!-- Work to Home Journey -->
                     <div>
                         <div class="flex items-center justify-between text-xs mb-2">
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1 sm:gap-2 flex-wrap">
                                 <span
-                                    class="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-sm shadow-sm">🏢</span>
-                                <span class="text-gray-500">→</span>
+                                    class="w-5 h-5 sm:w-6 sm:h-6 bg-white dark:bg-black 
+                                             rounded-lg flex items-center justify-center text-xs sm:text-sm 
+                                             shadow-sm dark:shadow-gray-900 border border-transparent dark:border-gray-800">
+                                    🏢
+                                </span>
+                                <span class="text-gray-500 dark:text-gray-400">→</span>
                                 <span
-                                    class="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-sm shadow-sm">🏠</span>
-                                <span class="text-gray-400 text-[10px] ml-1">
+                                    class="w-5 h-5 sm:w-6 sm:h-6 bg-white dark:bg-black 
+                                             rounded-lg flex items-center justify-center text-xs sm:text-sm 
+                                             shadow-sm dark:shadow-gray-900 border border-transparent dark:border-gray-800">
+                                    🏠
+                                </span>
+                                <span class="text-gray-400 dark:text-white text-[10px] ml-1 whitespace-nowrap">
                                     {{workToHome.departure}} - {{workToHome.arrival}}
                                 </span>
                             </div>
-                            <span [class]="getRainTextClass(day.rainProbability.workToHome)">
+                            <span [class]="getRainTextClass(day.rainProbability.workToHome)" class="font-medium">
                                 {{day.rainProbability.workToHome}}%
                             </span>
                         </div>
 
                         <!-- Progress Bar with Gradient -->
-                        <div class="w-full h-2 bg-gray-200/50 rounded-full overflow-hidden">
+                        <div class="w-full h-2 bg-gray-200/50 dark:bg-gray-800 rounded-full overflow-hidden">
                             <div class="h-full rounded-full transition-all duration-500"
                                 [style.width.%]="day.rainProbability.workToHome"
                                 [ngClass]="getRainGradientClass(day.rainProbability.workToHome)">
@@ -192,7 +258,7 @@
                         </div>
 
                         <!-- Status Text -->
-                        <p class="text-[10px] mt-1 text-gray-400">
+                        <p class="text-[10px] mt-1 text-gray-400 dark:text-white">
                             {{getJourneyStatus(day.rainProbability.workToHome)}}
                         </p>
                     </div>
@@ -201,15 +267,20 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="space-y-2">
+        <div class="space-y-2 sticky bottom-0 bg-white dark:bg-black pt-2 
+                    border-t border-gray-100 dark:border-gray-800 mt-2">
             <!-- Show Route Button -->
-            <button (click)="onShowRoute()" class="w-full bg-linear-to-r from-blue-600 to-blue-700 text-white py-3.5 px-4 
+            <button (click)="onShowRoute()" class="w-full bg-linear-to-r from-blue-600 to-blue-700 
+                           dark:from-blue-500 dark:to-blue-600 
+                           text-white py-3 sm:py-3.5 px-4 
                            rounded-xl font-medium text-sm tracking-wide
                            hover:from-blue-700 hover:to-blue-800 
+                           dark:hover:from-blue-600 dark:hover:to-blue-700 
                            focus:ring-4 focus:ring-blue-500/20 
                            transition-all duration-200 
                            flex items-center justify-center gap-2
-                           shadow-sm hover:shadow cursor-pointer">
+                           shadow-sm hover:shadow cursor-pointer
+                           active:scale-98 touch-manipulation">
                 Tunjuk Laluan di Peta
             </button>
         </div>

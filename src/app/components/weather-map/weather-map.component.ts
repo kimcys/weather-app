@@ -13,10 +13,12 @@ import { MotorcycleCommuterComponent } from '../motorcycle-commuter/motorcycle-c
 import { CommuteResultComponent } from '../commute-result/commute-result.component';
 import { CommuterSchedule, HourlyWeather, JourneyTime, MapLocation } from '../../model/motorcycle.model';
 import { MotorcycleCommuterService } from '../../services/motorcycle-commuter.service';
+import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-weather-map',
-  imports: [CommonModule, FormsModule, WeatherCardsComponent, MotorcycleCommuterComponent, CommuteResultComponent],
+  imports: [CommonModule, FormsModule, WeatherCardsComponent, MotorcycleCommuterComponent, CommuteResultComponent, ThemeToggleComponent],
   templateUrl: './weather-map.component.html',
   styleUrl: './weather-map.component.css'
 })
@@ -45,6 +47,7 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
   mapLoaded = false;
   locationsCount = 0;
   loadingMessage = 'Memulakan...';
+  isDarkMode = false;
 
   selectedLocationType: string = 'Ds';
   locationTypes = [
@@ -68,8 +71,14 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
     private locationService: LocationService,
     private locationMatcher: LocationMatcherService,
     private mapService: MapService,
-    private motorcycleService: MotorcycleCommuterService
-  ) { }
+    private motorcycleService: MotorcycleCommuterService,
+    private themeService: ThemeService
+  ) {
+    this.themeService.currentTheme$.subscribe(theme => {
+      this.isDarkMode = theme === 'dark';
+  });
+
+   }
 
   ngOnInit(): void {
     this.todayLabel = new Date().toLocaleDateString('ms-MY', {

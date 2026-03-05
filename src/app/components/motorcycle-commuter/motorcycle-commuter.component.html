@@ -1,92 +1,124 @@
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4 h-full">
+<div class="bg-white dark:bg-black rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 
+            p-4 sm:p-6 mb-4 h-full transition-colors duration-200">
+
     <!-- Header -->
-    <div class="flex items-center gap-3 mb-6">
-        <h3 class="text-sm font-medium text-gray-500">Pengguna Jalan Raya</h3>
+    <div class="flex items-center gap-3 mb-4 sm:mb-6">
+        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Pengguna Jalan Raya</h3>
     </div>
 
-    <!-- Location Grid -->
-    <div class="grid grid-cols-2 gap-6 mb-6">
+    <!-- Location Grid - Stack on mobile, side by side on desktop -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
         <!-- Home Location -->
         <div class="space-y-2">
-            <label class="flex items-center gap-2 text-sm font-medium text-gray-600">
+            <label class="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
                 Lokasi Rumah
             </label>
             <div class="relative">
                 <input #homeSearchInput type="text" [(ngModel)]="homeLocation" (ngModelChange)="onLocationChange()"
-                    placeholder="Cari alamat rumah..." class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm
-                           focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
+                    placeholder="Cari alamat rumah..." class="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-900 
+                           border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm
+                           text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500
+                           focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-blue-500/20 
+                           focus:border-blue-500 dark:focus:border-blue-400
                            transition-all duration-200">
             </div>
         </div>
 
         <!-- Work Location -->
         <div class="space-y-2">
-            <label class="flex items-center gap-2 text-sm font-medium text-gray-600">
+            <label class="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
                 Lokasi Kerja
             </label>
             <div class="relative">
                 <input #workSearchInput type="text" [(ngModel)]="workLocation" (ngModelChange)="onLocationChange()"
-                    placeholder="Cari alamat kerja..." class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm
-                           focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                    placeholder="Cari alamat kerja..." class="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-900 
+                           border border-gray-200 dark:border-gray-700 rounded-xl text-xs sm:text-sm
+                           text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500
+                           focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-blue-500/20 
+                           focus:border-blue-500 dark:focus:border-blue-400
                            transition-all duration-200">
             </div>
         </div>
     </div>
 
     <!-- Journey Times Section -->
-    <div class="mb-6 p-5 bg-gray-50 rounded-xl border border-gray-100">
-        <h4 class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-4">
-            <span class="text-lg">⏱️</span>
+    <div class="mb-4 sm:mb-6 p-4 sm:p-5 bg-gray-50 dark:bg-gray-900 rounded-xl 
+                border border-gray-100 dark:border-gray-800">
+
+        <h4
+            class="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 mb-3 sm:mb-4">
+            <span class="text-base sm:text-lg">⏱️</span>
             Masa Perjalanan
-            <span class="text-xs font-normal text-gray-400 ml-auto">Sama untuk semua hari</span>
+            <span class="text-[10px] sm:text-xs font-normal text-gray-400 dark:text-white ml-auto">
+                Sama untuk semua hari
+            </span>
         </h4>
 
-        <div class="grid grid-cols-2 gap-6">
+        <!-- Journey Times - Stack on mobile, side by side on desktop -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <!-- Home to Work -->
-            <div class="space-y-3">
-                <label class="flex items-center gap-2 text-xs font-medium text-gray-500">
+            <div class="space-y-2 sm:space-y-3">
+                <label
+                    class="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">
                     Bertolak ke Kerja
                 </label>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-2 sm:gap-3">
                     <div class="space-y-1">
-                        <span class="text-xs text-gray-400">Bertolak</span>
-                        <select [(ngModel)]="homeToWork.departure" (ngModelChange)="onFormChange()" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm
-                                   focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
-                                   transition-all duration-200 cursor-pointer">
-                            <option *ngFor="let time of timeSlots" [value]="time">{{time}}</option>
+                        <span class="text-[8px] sm:text-xs text-gray-400 dark:text-white">Bertolak</span>
+                        <select [(ngModel)]="homeToWork.departure" (ngModelChange)="onFormChange()" class="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white dark:bg-black 
+                                       border border-gray-200 dark:border-gray-700 rounded-lg text-xs sm:text-sm
+                                       text-gray-900 dark:text-white
+                                       focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
+                                       dark:focus:border-blue-400
+                                       transition-all duration-200 cursor-pointer">
+                            <option *ngFor="let time of timeSlots" [value]="time"
+                                class="dark:bg-gray-900 dark:text-white">{{time}}</option>
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <span class="text-xs text-gray-400">Sampai</span>
-                        <select [(ngModel)]="homeToWork.arrival" (ngModelChange)="onFormChange()" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm
-                                   focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
-                                   transition-all duration-200 cursor-pointer">
-                            <option *ngFor="let time of timeSlots" [value]="time">{{time}}</option>
+                        <span class="text-[8px] sm:text-xs text-gray-400 dark:text-white">Sampai</span>
+                        <select [(ngModel)]="homeToWork.arrival" (ngModelChange)="onFormChange()" class="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white dark:bg-black 
+                                       border border-gray-200 dark:border-gray-700 rounded-lg text-xs sm:text-sm
+                                       text-gray-900 dark:text-white
+                                       focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
+                                       dark:focus:border-blue-400
+                                       transition-all duration-200 cursor-pointer">
+                            <option *ngFor="let time of timeSlots" [value]="time"
+                                class="dark:bg-gray-900 dark:text-white">{{time}}</option>
                         </select>
                     </div>
                 </div>
             </div>
 
             <!-- Work to Home -->
-            <div class="space-y-3">
-                <label class="flex items-center gap-2 text-xs font-medium text-gray-500">
+            <div class="space-y-2 sm:space-y-3">
+                <label
+                    class="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400">
                     Bertolak Balik
                 </label>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-2 sm:gap-3">
                     <div class="space-y-1">
-                        <span class="text-xs text-gray-400">Bertolak</span>
-                        <select [(ngModel)]="workToHome.departure" (ngModelChange)="onFormChange()" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm
-                                   focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
-                                   transition-all duration-200 cursor-pointer">
-                            <option *ngFor="let time of timeSlots" [value]="time">{{time}}</option>
+                        <span class="text-[8px] sm:text-xs text-gray-400 dark:text-white">Bertolak</span>
+                        <select [(ngModel)]="workToHome.departure" (ngModelChange)="onFormChange()" class="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white dark:bg-black 
+                                       border border-gray-200 dark:border-gray-700 rounded-lg text-xs sm:text-sm
+                                       text-gray-900 dark:text-white
+                                       focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
+                                       dark:focus:border-blue-400
+                                       transition-all duration-200 cursor-pointer">
+                            <option *ngFor="let time of timeSlots" [value]="time"
+                                class="dark:bg-gray-900 dark:text-white">{{time}}</option>
                         </select>
                     </div>
                     <div class="space-y-1">
-                        <span class="text-xs text-gray-400">Sampai</span>
-                        <select [(ngModel)]="workToHome.arrival" (ngModelChange)="onFormChange()" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm
-                                   focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
-                                   transition-all duration-200 cursor-pointer">
-                            <option *ngFor="let time of timeSlots" [value]="time">{{time}}</option>
+                        <span class="text-[8px] sm:text-xs text-gray-400 dark:text-white">Sampai</span>
+                        <select [(ngModel)]="workToHome.arrival" (ngModelChange)="onFormChange()" class="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white dark:bg-black 
+                                       border border-gray-200 dark:border-gray-700 rounded-lg text-xs sm:text-sm
+                                       text-gray-900 dark:text-white
+                                       focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 
+                                       dark:focus:border-blue-400
+                                       transition-all duration-200 cursor-pointer">
+                            <option *ngFor="let time of timeSlots" [value]="time"
+                                class="dark:bg-gray-900 dark:text-white">{{time}}</option>
                         </select>
                     </div>
                 </div>
@@ -95,51 +127,56 @@
 
         <!-- Duration Info -->
         <div *ngIf="selectedHomeLocation && selectedWorkLocation"
-            class="mt-4 flex items-center gap-2 text-xs text-gray-500">
+            class="mt-3 sm:mt-4 flex flex-col xs:flex-row xs:items-center gap-2 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
             <div class="flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                 <span>Anggaran masa perjalanan:</span>
-                <span class="font-medium text-gray-700">{{journeyDuration}}</span>
+                <span class="font-medium text-gray-700 dark:text-gray-200">{{journeyDuration}}</span>
             </div>
         </div>
     </div>
 
-    <!-- Working Days Selection - Minimalist Cards -->
-    <div class="mb-6">
-        <label class="flex items-center gap-2 text-sm font-medium text-gray-600 mb-3">
+    <!-- Working Days Selection -->
+    <div class="mb-4 sm:mb-6">
+        <label
+            class="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 mb-2 sm:mb-3">
             Hari Bekerja
         </label>
 
-        <div class="grid grid-cols-4 gap-2">
+        <!-- Days Grid - 4 columns always, but adjusts for mobile -->
+        <div class="grid grid-cols-4 gap-1.5 sm:gap-2">
             <div *ngFor="let day of weekDays" (click)="day.isWorking = !day.isWorking; onFormChange()"
-                class="group relative cursor-pointer transition-all duration-200">
+                class="group relative cursor-pointer transition-all duration-200 touch-manipulation">
 
                 <!-- Card -->
-                <div class="relative p-3 rounded-xl border-2 transition-all duration-200
+                <div class="relative p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all duration-200
                           hover:shadow-md" [ngClass]="{
-                       'border-blue-500 bg-blue-50': day.isWorking,
-                       'border-gray-100 bg-white hover:border-gray-200': !day.isWorking
+                       'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-950/30': day.isWorking,
+                       'border-gray-100 dark:border-gray-800 bg-white dark:bg-black hover:border-gray-200 dark:hover:border-gray-700': !day.isWorking
                      }">
 
-                    <!-- Day Name - Full on desktop, short on mobile -->
+                    <!-- Day Name - Responsive -->
                     <div class="text-center">
-                        <div class="text-sm font-medium mb-1 hidden sm:block"
-                            [ngClass]="{'text-blue-700': day.isWorking, 'text-gray-600': !day.isWorking}">
+                        <!-- Full day name on larger screens -->
+                        <div class="text-[10px] sm:text-xs md:text-sm font-medium mb-0.5 sm:mb-1 hidden xs:block"
+                            [ngClass]="{'text-blue-700 dark:text-blue-400': day.isWorking, 
+                                       'text-gray-600 dark:text-gray-400': !day.isWorking}">
                             {{day.label}}
                         </div>
-                        <div class="text-sm font-medium mb-1 sm:hidden"
-                            [ngClass]="{'text-blue-700': day.isWorking, 'text-gray-600': !day.isWorking}">
-                            {{day.label.substring(0, 3)}}
+                        <!-- Short day name on very small screens -->
+                        <div class="text-[10px] font-medium mb-0.5 xs:hidden" [ngClass]="{'text-blue-700 dark:text-blue-400': day.isWorking, 
+                                       'text-gray-600 dark:text-gray-400': !day.isWorking}">
+                            {{day.label}}
                         </div>
 
                         <!-- Status Indicator -->
                         <div class="flex justify-center">
-                            <div class="w-5 h-5 rounded-full flex items-center justify-center
-                                        transition-all duration-200" [ngClass]="{
+                            <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center
+                                        transition-all duration-200 text-[8px] sm:text-xs" [ngClass]="{
                                    'bg-blue-500 text-white': day.isWorking,
-                                   'bg-gray-100 text-gray-400 group-hover:bg-gray-200': !day.isWorking
-                                 }">
-                                <span class="text-xs">
+                                   'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-white 
+                                    group-hover:bg-gray-200 dark:group-hover:bg-gray-700': !day.isWorking}">
+                                <span class="text-[8px] sm:text-xs">
                                     {{day.isWorking ? '✓' : ''}}
                                 </span>
                             </div>
@@ -151,20 +188,26 @@
 
         <!-- Summary Badge -->
         <div class="flex items-center justify-end mt-2">
-            <div class="text-xs text-gray-400">
+            <div class="text-[10px] sm:text-xs text-gray-400 dark:text-white">
                 {{getWorkingDaysCount()}} hari bekerja dipilih
             </div>
         </div>
     </div>
 
     <!-- Calculate Button -->
-    <button (click)="onCalculate()" [disabled]="!isFormValid()" class="w-full bg-linear-to-r from-blue-600 to-blue-700 text-white py-3.5 px-4 
-                   rounded-xl font-medium text-sm tracking-wide
+    <button (click)="onCalculate()" [disabled]="!isFormValid()" class="w-full bg-linear-to-r from-blue-600 to-blue-700 
+                   dark:from-blue-500 dark:to-blue-600 
+                   text-white py-3 sm:py-3.5 px-4 
+                   rounded-xl font-medium text-xs sm:text-sm tracking-wide
                    hover:from-blue-700 hover:to-blue-800 
+                   dark:hover:from-blue-600 dark:hover:to-blue-700 
                    focus:ring-4 focus:ring-blue-500/20 
                    transition-all duration-200 
-                   disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-blue-600
-                   flex items-center justify-center gap-2 cursor-pointer">
-        Kira Laluan & Kebarangkalian Hujan
+                   disabled:opacity-40 disabled:cursor-not-allowed 
+                   disabled:hover:from-blue-600 dark:disabled:hover:from-blue-500
+                   flex items-center justify-center gap-2 cursor-pointer
+                   active:scale-98 touch-manipulation">
+        <span class="hidden xs:inline">Kira Laluan & Kebarangkalian Hujan</span>
+        <span class="inline xs:hidden">Kira Laluan</span>
     </button>
 </div>

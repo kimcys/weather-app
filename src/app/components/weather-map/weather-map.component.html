@@ -1,20 +1,34 @@
 <!-- weather-map.component.html -->
-<div class="h-screen flex flex-col bg-gray-50">
-    <!-- Header - Minimalist -->
-    <header class="bg-white border-b border-gray-100 px-6 py-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div
-                class="w-14 h-14 flex items-center justify-center">
+<div class="flex flex-col bg-gray-50 dark:bg-[#1e1e24]">
+    <!-- Header - Minimalist with Dark Mode Toggle -->
+    <header
+        class="bg-white dark:bg-black border-b border-gray-100 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4 transition-colors duration-200">
+        <div class="mx-auto flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+            <!-- Logo and Title -->
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div class="w-14 h-14 sm:w-18 sm:h-18 flex items-center justify-center shrink-0">
                     <img src="/hujanke-transparent.png" alt="HujanKe?" class="w-full">
                 </div>
-                <div>
-                    <h1 class="text-lg font-semibold text-gray-900">Ramalan Cuaca Malaysia</h1>
-                    <p class="text-xs text-gray-500">Kemaskini cuaca terkini</p>
+                <div class="min-w-0">
+                    <h1 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
+                        Ramalan Cuaca Malaysia
+                    </h1>
+                    <p class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 truncate">
+                        Kemaskini cuaca terkini
+                    </p>
                 </div>
             </div>
-            <div class="text-xs px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full">
-                {{ todayLabel }}
+
+            <!-- Right Side - Date and Theme Toggle -->
+            <div class="flex items-center gap-2 sm:gap-3 ml-auto">
+                <!-- Date Badge -->
+                <div class="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5 
+                        bg-gray-100 dark:bg-gray-700 
+                        text-gray-600 dark:text-gray-300 
+                        rounded-full whitespace-nowrap">
+                    {{ todayLabel }}
+                </div>
+                <app-theme-toggle></app-theme-toggle>
             </div>
         </div>
     </header>
@@ -411,7 +425,7 @@
 
     <!-- Commuter Section - Clean divider -->
     <div class="mt-4">
-        <div class="grid grid-cols-2 gap-4 items-stretch p-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch p-4">
             <div class="h-full">
                 <app-motorcycle-commuter class="block h-full" (calculate)="onCommuterCalculate($event)">
                 </app-motorcycle-commuter>
