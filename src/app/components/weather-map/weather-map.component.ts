@@ -450,14 +450,16 @@ export class WeatherMapComponent implements OnInit, AfterViewInit, OnDestroy, On
     this.commuterHomeToWork = event.homeToWork;
     this.commuterWorkToHome = event.workToHome;
 
-    // Convert weekDays to CommuterSchedule with rainProbability
     this.commuterWeekDays = event.weekDays.map(day => ({
       ...day,
       rainProbability: { homeToWork: 0, workToHome: 0 }
     }));
 
-    await this.calculateCommuterRainProbability();
     this.commuterShowResults = true;
+
+    this.calculateCommuterRainProbability().catch(error => {
+      console.error('Error calculating rain probability:', error);
+    });
   }
 
   async calculateCommuterRainProbability() {

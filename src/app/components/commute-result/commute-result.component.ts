@@ -98,9 +98,8 @@ export class CommuteResultComponent {
     if (probability < 60) return 'Berpotensi hujan, bawa payung';
     return 'Hujan berkemungkinan besar, berhati-hati di jalan';
   }
-
+  
   onClearResults() {
     this.clearResults.emit();
   }
-
 }
